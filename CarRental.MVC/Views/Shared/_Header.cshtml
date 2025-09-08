@@ -1,0 +1,76 @@
+﻿<!-- Navbar Start -->
+<div class="container-fluid position-relative nav-bar p-0">
+    <div class="position-relative px-lg-5" style="z-index: 9;">
+        <nav class="navbar bg-secondary navbar-dark py-3 px-3 px-lg-5">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <!-- Block 1: Logo + Slogan -->
+                <div class="d-flex align-items-center">
+                    <a href="@Url.Action("Index", "Home")" class="d-flex align-items-center text-decoration-none">
+                        <i class="text-light fa-solid fa-car fa-2x me-2"></i>
+                        <h1 class="text-primary mb-1">Rent a car today!</h1>
+                    </a>
+                </div>
+
+                <!-- Block 2: About Us (centered) -->
+                @* @{
+                    string aboutLink;
+
+                    if (User.Identity.IsAuthenticated && User.IsInRole("Owner"))
+                    {
+                        aboutLink = Url.Action("Owner", "Home");
+                    }
+                    else
+                    {
+                        // TODO: Sửa đường dẫn
+                        aboutLink = Url.Action("", "");
+                    }
+                }
+                <div class="text-center">
+                    <a href="@aboutLink" class="btn btn-outline-light text-uppercase fw-bold px-4">
+                        About Us
+                    </a>
+                </div> *@
+
+                <!-- Block 3: Sign Up/Login or Dropdown -->
+                <div class="d-flex align-items-center">
+                    <i class="fa fa-user text-white me-2"></i>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="nav-item dropdown">
+                            <a href="#" class="text-white nav-link dropdown-toggle p-0" data-bs-toggle="dropdown">
+                                Welcome, @User.Identity.Name
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end rounded-0 m-0">
+                                <a asp-controller="Manage" asp-action="Index" class="dropdown-item">My Profile</a>
+                                @if (User.IsInRole("CarOwner"))
+                                {
+                                    <a href="@Url.Action("MyCars", "Car")" class="dropdown-item">My Cars</a>
+                                    <a href="@Url.Action("Index", "CarOwnerBooking")" class="dropdown-item">My Bookings</a>
+                                    <a href="@Url.Action("Index", "Feedback")" class="dropdown-item">My FeedBacks</a>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Index", "BookingList")" class="dropdown-item">My Bookings</a>
+                                    <a asp-action="Index" asp-controller="Cart" class="dropdown-item">My Cart</a>
+                                }
+                                <a href="@Url.Action("Index", "Wallet")" class="dropdown-item">My Wallet</a>
+                                <a onclick="document.getElementById('logoutForm').submit();" class="dropdown-item">Logout</a>
+                                <form id="logoutForm" asp-controller="Account" asp-action="LogOff" method="post" style="display: none;">
+                                </form>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <a asp-controller="Account" asp-action="Login" class="text-white me-2">Login</a>
+                            <span class="text-white">|</span>
+                            <a asp-controller="Account" asp-action="Register" class="text-white ms-2">Register</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+<!-- Navbar End -->

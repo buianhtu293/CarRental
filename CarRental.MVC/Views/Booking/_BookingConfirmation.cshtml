@@ -1,0 +1,327 @@
+@using CarRental.MVC.Models.Booking
+@model BookingViewModel
+
+<div class="step-header text-center">
+    <div class="success-icon mb-3">
+        <i class="fas fa-check-circle fa-5x text-success"></i>
+    </div>
+    <h2>Booking Successful!</h2>
+    <p class="mb-0">Thank you for choosing our car rental service</p>
+</div>
+
+<div class="form-card card">
+    <div class="card-header bg-success text-white text-center">
+        <h5 class="mb-0"><i class="fas fa-file-alt mr-2"></i>Booking Confirmation</h5>
+    </div>
+    <div class="card-body">
+        <div class="confirmation-details">
+            <!-- Booking Number -->
+            <div class="confirmation-item">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Booking Number:</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="h5 text-primary font-weight-bold" data-booking-number>@Model.Confirmation.BookingNumber</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Date -->
+            <div class="confirmation-item">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Booking Date:</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span data-booking-date>@Model.Confirmation.BookingDate.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Status -->
+            <div class="confirmation-item">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Booking Status:</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="" data-booking-status>@Model.Confirmation.BookingStatus</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="confirmation-item">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Total Amount:</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="h5 text-success font-weight-bold">@Model.TotalAmount.ToString("N0") VND</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="confirmation-item">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Payment Method:</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span data-payment-method>@Model.Confirmation.PaymentMethod</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="confirmation-item">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Payment Status:</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="" data-payment-status>
+                            @Model.Confirmation.PaymentStatus
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rental Details Card -->
+<div class="form-card card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-car mr-2"></i>Rental Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <strong>Pickup Date:</strong><br>
+                    <i class="fas fa-calendar-alt text-success mr-1"></i>
+                    @Model.PickupDate.ToString("dd/MM/yyyy")
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <strong>Return Date:</strong><br>
+                    <i class="fas fa-calendar-alt text-danger mr-1"></i>
+                    @Model.ReturnDate.ToString("dd/MM/yyyy")
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <strong>Duration:</strong><br>
+                    <i class="fas fa-clock text-info mr-1"></i>
+                    @Model.NumberOfDays day(s)
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <strong>Number of Cars:</strong><br>
+                    <i class="fas fa-car text-primary mr-1"></i>
+                    @Model.CarItems.Count car(s)
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <strong>Renter Name:</strong><br>
+                    <i class="fas fa-user text-secondary mr-1"></i>
+                    @Model.Information.Renter.FullName
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <strong>Contact Phone:</strong><br>
+                    <i class="fas fa-phone text-secondary mr-1"></i>
+                    @Model.Information.Renter.PhoneNumber
+                </div>
+            </div>
+        </div>
+
+        <!-- Car Details -->
+        @foreach (var car in Model.CarItems)
+        {
+            <div class="car-confirmation border rounded p-3 mb-3">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <img src="@(string.IsNullOrEmpty(car.ImagePath) ? "/images/cars/default-car.jpg" : car.ImagePath)" 
+                             alt="@car.CarName" class="img-fluid rounded" style="height: 80px; object-fit: cover;">
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-1">@car.CarName</h6>
+                        <p class="text-muted mb-1">@car.LicensePlate</p>
+                        <small class="text-muted">@car.Location</small>
+                    </div>
+                    <div class="col-md-3 text-right">
+                        <div class="font-weight-bold text-primary">@car.SubTotal.ToString("N0") VND</div>
+                        <small class="text-muted">Deposit: @car.Deposit.ToString("N0") VND</small>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Total Summary -->
+        <div class="row mt-3 pt-3 border-top">
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between">
+                    <span><strong>Total Rental Fee:</strong></span>
+                    <span class="font-weight-bold text-primary">@Model.TotalAmount.ToString("N0") VND</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between">
+                    <span><strong>Total Deposit:</strong></span>
+                    <span class="font-weight-bold text-success">@Model.TotalDeposit.ToString("N0") VND</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Next Steps Card -->
+@if (Model.Confirmation.NextSteps.Any())
+{
+    <div class="form-card card">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-list-check mr-2"></i>Next Steps</h5>
+        </div>
+        <div class="card-body">
+            <div class="next-steps">
+                @foreach (var step in Model.Confirmation.NextSteps)
+                {
+                    <div class="step-item d-flex align-items-start mb-3">
+                        <div class="step-icon mr-3">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <div class="step-content">
+                            <p class="mb-0">@step</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Contact Information Card -->
+<div class="form-card card">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="fas fa-phone mr-2"></i>Contact Information</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="contact-item">
+                    <strong>Customer Service:</strong><br>
+                    <a href="tel:0999888777" class="text-primary">
+                        <i class="fas fa-phone mr-1"></i>0999-888-777
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="contact-item">
+                    <strong>Email Support:</strong><br>
+                    <a href="mailto:support@carrental.com" class="text-primary">
+                        <i class="fas fa-envelope mr-1"></i>support@carrental.com
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Important:</strong> Please save your booking number for future reference. 
+            A confirmation email has been sent to your registered email address.
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="text-center mt-4">
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <a href="@Url.Action("Index", "Customer")" class="btn btn-outline-primary btn-block">
+                <i class="fas fa-home mr-2"></i>Go to Homepage
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="@Url.Action("Index", "Customer")" class="btn btn-outline-success btn-block">
+                <i class="fas fa-plus mr-2"></i>Book Another Car
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.success-icon {
+    animation: bounceIn 1s ease-in-out;
+}
+
+@@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.confirmation-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.confirmation-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item {
+    margin-bottom: 15px;
+}
+
+.car-confirmation {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef !important;
+}
+
+.step-item {
+    position: relative;
+}
+
+.step-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.contact-item {
+    margin-bottom: 15px;
+}
+
+.contact-item a {
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.contact-item a:hover {
+    text-decoration: underline;
+}
+</style>

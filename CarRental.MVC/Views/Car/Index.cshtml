@@ -1,0 +1,340 @@
+@model IEnumerable<CarRental.Application.DTOs.CarDto>
+
+@{
+    ViewData["Title"] = "Our Cars";
+    Layout = "_Layout";
+}
+
+<!-- Page Header Start -->
+<div class="container-fluid page-header">
+    <h1 class="display-3 text-uppercase text-white mb-3">Car Listing</h1>
+    <div class="d-inline-flex text-white">
+        <h6 class="text-uppercase m-0"><a class="text-white" href="@Url.Action("Index", "Home")">Home</a></h6>
+        <h6 class="text-body m-0 px-3">/</h6>
+        <h6 class="text-uppercase text-body m-0">Car Listing</h6>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Search Filter Start -->
+<div class="container-fluid py-3 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form class="row g-3" id="searchForm">
+                            <div class="col-md-4">
+                                <label for="pickupDate" class="form-label">Ngày nh?n xe</label>
+                                <input type="date" class="form-control" id="pickupDate" name="pickupDate" 
+                                       value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="returnDate" class="form-label">Ngày tr? xe</label>
+                                <input type="date" class="form-control" id="returnDate" name="returnDate" 
+                                       value="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary w-100" onclick="updateBookingDates()">
+                                    <i class="fas fa-search mr-2"></i>C?p nh?t ngày
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Search Filter End -->
+
+<!-- Rent A Car Start -->
+<div class="container-fluid py-5">
+    <div class="container pt-5 pb-3">
+        <h1 class="display-4 text-uppercase text-center mb-5">Find Your Car</h1>
+        <div class="row">
+            @foreach (var car in Model)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="rent-item h-100">
+                        <img class="img-fluid mb-4" src="@(string.IsNullOrEmpty(car.ImageUrl) ? "/img/car-rent-1.png" : car.ImageUrl)" 
+                             alt="@car.Brand @car.Model" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+                        
+                        <h4 class="text-uppercase mb-3 text-primary">@car.Brand @car.Model</h4>
+                        
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="px-2">
+                                <i class="fa fa-car text-primary mr-1"></i>
+                                <small>@car.Year</small>
+                            </div>
+                            <div class="px-2 border-left border-right">
+                                <i class="fa fa-cogs text-primary mr-1"></i>
+                                <small>@car.Transmission</small>
+                            </div>
+                            <div class="px-2">
+                                <i class="fa fa-road text-primary mr-1"></i>
+                                <small>@car.FuelType</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="px-2">
+                                <i class="fa fa-users text-primary mr-1"></i>
+                                <small>@car.Seats Seats</small>
+                            </div>
+                            <div class="px-2 border-left">
+                                <i class="fa fa-palette text-primary mr-1"></i>
+                                <small>@car.Color</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-center mb-3">
+                            <span class="badge badge-@(car.IsAvailable ? "success" : "danger") p-2">
+                                @car.Status
+                            </span>
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <div class="h4 text-primary mb-0">@car.PricePerDay.ToString("N0") VN?</div>
+                            <small class="text-muted">/ ngày</small>
+                        </div>
+                        
+                        <div class="mt-auto">
+                            <div class="d-flex flex-column gap-2">
+                                <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Details", new { id = car.Id })">
+                                    <i class="fas fa-eye mr-2"></i>Xem chi ti?t
+                                </a>
+                                @if (car.IsAvailable)
+                                {
+                                    <button type="button" class="btn btn-primary btn-sm book-now-btn" 
+                                            data-car-id="@car.Id" data-car-name="@car.Brand @car.Model">
+                                        <i class="fas fa-calendar-check mr-2"></i>??t xe ngay
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-secondary btn-sm" disabled>
+                                        <i class="fas fa-lock mr-2"></i>Không kh? d?ng
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        @if (!Model.Any())
+        {
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-info-circle mr-2"></i>Không có xe nào kh? d?ng</h4>
+                        <p>Hi?n t?i chúng tôi không có xe nào phù h?p v?i yêu c?u c?a b?n. Vui lòng th? l?i sau.</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+<!-- Rent A Car End -->
+
+<!-- Multi-Select Booking Section -->
+<div class="container-fluid bg-light py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm" id="multiBookingCard" style="display: none;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cars mr-2"></i>??t nhi?u xe cùng lúc
+                            <span class="badge badge-light text-primary ml-2" id="selectedCount">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Xe ?ã ch?n:</strong>
+                                <span id="selectedCarNames"></span>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm mr-2" onclick="clearSelection()">
+                                    Xóa t?t c?
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="bookMultipleCars()" id="bookMultipleBtn">
+                                    <i class="fas fa-calendar-check mr-2"></i>??t t?t c? xe
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .page-header {
+            background: linear-gradient(rgba(51, 33, 29, .8), rgba(51, 33, 29, .8)), url('/img/carousel-1.jpg') center center no-repeat;
+            background-size: cover;
+            padding: 150px 0 60px 0;
+        }
+        
+        .rent-item {
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, .1);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid transparent;
+        }
+        
+        .rent-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .15);
+        }
+        
+        .rent-item.selected {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+        
+        .book-now-btn {
+            position: relative;
+        }
+        
+        .book-now-btn.selected {
+            background: #28a745;
+            border-color: #28a745;
+        }
+        
+        .book-now-btn.selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .gap-2 > * + * {
+            margin-top: 0.5rem;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        let selectedCars = [];
+        let pickupDate = '@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")';
+        let returnDate = '@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")';
+
+        $(document).ready(function() {
+            // Handle pickup date change
+            $('#pickupDate').change(function() {
+                var pickup = $(this).val();
+                var minReturn = new Date(pickup);
+                minReturn.setDate(minReturn.getDate() + 1);
+                $('#returnDate').attr('min', minReturn.toISOString().split('T')[0]);
+                
+                if ($('#returnDate').val() <= pickup) {
+                    $('#returnDate').val(minReturn.toISOString().split('T')[0]);
+                }
+            });
+
+            // Handle book now button clicks
+            $('.book-now-btn').click(function() {
+                var carId = $(this).data('car-id');
+                var carName = $(this).data('car-name');
+                
+                if ($(this).hasClass('selected')) {
+                    // Remove from selection
+                    removeCarFromSelection(carId);
+                    $(this).removeClass('selected').html('<i class="fas fa-calendar-check mr-2"></i>??t xe ngay');
+                    $(this).closest('.rent-item').removeClass('selected');
+                } else {
+                    // Add to selection
+                    addCarToSelection(carId, carName);
+                    $(this).addClass('selected').html('<i class="fas fa-check mr-2"></i>?ã ch?n');
+                    $(this).closest('.rent-item').addClass('selected');
+                }
+                
+                updateMultiBookingCard();
+            });
+        });
+
+        function updateBookingDates() {
+            pickupDate = $('#pickupDate').val();
+            returnDate = $('#returnDate').val();
+            
+            if (pickupDate >= returnDate) {
+                toastr.error('Ngày tr? xe ph?i sau ngày nh?n xe');
+                return;
+            }
+            
+            toastr.success('?ã c?p nh?t ngày thuê xe');
+        }
+
+        function addCarToSelection(carId, carName) {
+            if (!selectedCars.find(c => c.id === carId)) {
+                selectedCars.push({ id: carId, name: carName });
+            }
+        }
+
+        function removeCarFromSelection(carId) {
+            selectedCars = selectedCars.filter(c => c.id !== carId);
+        }
+
+        function updateMultiBookingCard() {
+            var count = selectedCars.length;
+            $('#selectedCount').text(count);
+            
+            if (count > 0) {
+                $('#multiBookingCard').show();
+                var names = selectedCars.map(c => c.name).join(', ');
+                $('#selectedCarNames').text(names);
+            } else {
+                $('#multiBookingCard').hide();
+            }
+        }
+
+        function clearSelection() {
+            selectedCars = [];
+            $('.book-now-btn.selected').removeClass('selected').html('<i class="fas fa-calendar-check mr-2"></i>??t xe ngay');
+            $('.rent-item.selected').removeClass('selected');
+            updateMultiBookingCard();
+        }
+
+        function bookMultipleCars() {
+            if (selectedCars.length === 0) {
+                toastr.error('Vui lòng ch?n ít nh?t 1 xe');
+                return;
+            }
+
+            if (!pickupDate || !returnDate) {
+                toastr.error('Vui lòng ch?n ngày nh?n và tr? xe');
+                return;
+            }
+
+            var carIds = selectedCars.map(c => c.id).join(',');
+            
+            if (selectedCars.length === 1) {
+                // Single car booking
+                window.location.href = '@Url.Action("StartFromCar", "Booking")' + 
+                    '?carId=' + selectedCars[0].id + 
+                    '&pickupDate=' + pickupDate + 
+                    '&returnDate=' + returnDate;
+            } else {
+                // Multiple cars booking
+                window.location.href = '@Url.Action("StartFromMultipleCars", "Booking")' + 
+                    '?carIds=' + carIds + 
+                    '&pickupDate=' + pickupDate + 
+                    '&returnDate=' + returnDate;
+            }
+        }
+    </script>
+}

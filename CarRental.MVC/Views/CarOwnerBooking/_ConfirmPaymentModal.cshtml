@@ -1,0 +1,24 @@
+﻿@* 
+    Partial view: Confirm Payment Modal (UC23)
+    Uses Bootstrap modal with semantic HTML.
+*@
+<div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentLabel" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title h5" id="confirmPaymentLabel">Confirm payment</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </header>
+            <section class="modal-body">
+                <p>
+                    Please confirm that you have received the full payment for this booking.
+                    This will finalize the transaction and complete the rental process.
+                </p>
+            </section>
+            <footer class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary" id="confirmPaymentYesBtn">Yes</button>
+            </footer>
+        </div>
+    </div>
+</div>

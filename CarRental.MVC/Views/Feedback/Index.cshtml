@@ -1,0 +1,270 @@
+﻿@model CarRental.MVC.Models.Feedback.FeedbackReportIndexViewModel
+
+@{
+    ViewData["Title"] = "Feedback Report";
+    Layout = "_Layout";
+}
+
+@* Anti-forgery token not required for GET filtering, but kept for consistency in layout *@
+@Html.AntiForgeryToken()
+
+<section class="container py-4">
+    <header class="mb-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">My Reports</li>
+            </ol>
+        </nav>
+
+        <h1 class="h3 mb-1">Feedback Report</h1>
+        <p class="text-muted mb-0">Overview and details of feedback given to your cars.</p>
+    </header>
+
+    <!-- FILTERS -->
+    <section class="mb-4">
+        <form id="feedback-filter" class="row g-3 align-items-end" method="get" asp-action="Index"
+              asp-controller="Feedback" role="search">
+            <!-- Car selector -->
+            <div class="col-md-4">
+                <label for="carId" class="form-label">Car</label>
+                <select id="carId" name="carId" class="form-select">
+                    <option value="">All cars</option>
+                    @foreach (var car in Model.Cars)
+                    {
+                        <option value="@car.Item1" selected="@(Model.CarId.HasValue && car.Item1 == Model.CarId ? "selected" : null)">
+                            @car.Item2
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- Keyword -->
+            <div class="col-md-3">
+                <label for="keyword" class="form-label">Keyword</label>
+                <input id="keyword" name="keyword" type="search" class="form-control" value="@Model.Keyword"
+                       placeholder="Search in comments, user..."/>
+            </div>
+
+            <!-- Date range -->
+            <div class="col-md-2">
+                <label for="fromDate" class="form-label">From</label>
+                <input id="fromDate" name="fromDate" type="date" class="form-control"
+                       value="@(Model.FromDate?.ToString("yyyy-MM-dd"))"/>
+            </div>
+            <div class="col-md-2">
+                <label for="toDate" class="form-label">To</label>
+                <input id="toDate" name="toDate" type="date" class="form-control"
+                       value="@(Model.ToDate?.ToString("yyyy-MM-dd"))"/>
+            </div>
+
+            <!-- pageSize hidden / optional -->
+            <div class="col-md-1 text-end">
+                <label class="form-label d-block invisible">Go</label>
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+
+            @* Hidden fields for star-range filter that the JS will set *@
+            <input type="hidden" id="minStars" name="minStars" value="@(Model.MinStars?.ToString() ?? "")"/>
+            <input type="hidden" id="maxStars" name="maxStars" value="@(Model.MaxStars?.ToString() ?? "")"/>
+        </form>
+    </section>
+
+    <!-- SUMMARY CARDS -->
+    <section class="row mb-4" aria-labelledby="summary-heading">
+        <h2 id="summary-heading" class="visually-hidden">Summary</h2>
+
+        <article class="col-sm-6 col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <p class="mb-1 text-muted small">Average rating</p>
+                    <div class="display-6 fw-bold">
+                        @((Model.AverageStars.HasValue) ? Model.AverageStars.Value.ToString("0.00") : "—") <span
+                            class="text-warning">★</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="col-sm-6 col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <p class="mb-1 text-muted small">Feedbacks (on this page)</p>
+                    <div class="display-6 fw-bold">@Model.Items.Count</div>
+                    <p class="mb-0 text-muted small">Showing records of the current page</p>
+                </div>
+            </div>
+        </article>
+
+        <article class="col-sm-6 col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <p class="mb-1 text-muted small">Positive (4-5★)</p>
+                    <div class="h4 fw-bold">@((Model.Count5Stars + Model.Count4Stars))</div>
+                    <p class="mb-0 text-muted small">Count of positive feedbacks</p>
+                </div>
+            </div>
+        </article>
+
+        <article class="col-sm-6 col-md-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <p class="mb-1 text-muted small">Negative (1-2★)</p>
+                    <div class="h4 fw-bold">@((Model.Count1Star + Model.Count2Stars))</div>
+                    <p class="mb-0 text-muted small">Count of negative feedbacks</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <!-- STAR FILTERS (buttons) -->
+    <section class="mb-3" aria-label="Star filters">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="me-2 text-muted">Filter by stars</span>
+
+            <button type="button" class="btn btn-outline-secondary rating-filter-btn" data-min="" data-max="">
+                All
+                <div class="small text-muted">
+                    (@(Model.Count1Star + Model.Count2Stars + Model.Count3Stars + Model.Count4Stars + Model.Count5Stars))
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary rating-filter-btn" data-min="5" data-max="5">
+                5 ★
+                <div class="small text-muted">(@Model.Count5Stars)</div>
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary rating-filter-btn" data-min="4" data-max="4">
+                4 ★
+                <div class="small text-muted">(@Model.Count4Stars)</div>
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary rating-filter-btn" data-min="3" data-max="3">
+                3 ★
+                <div class="small text-muted">(@Model.Count3Stars)</div>
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary rating-filter-btn" data-min="2" data-max="2">
+                2 ★
+                <div class="small text-muted">(@Model.Count2Stars)</div>
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary rating-filter-btn" data-min="1" data-max="1">
+                1 ★
+                <div class="small text-muted">(@Model.Count1Star)</div>
+            </button>
+        </div>
+    </section>
+
+    <!-- TABLE: rendered initially server-side from the partial and updated via AJAX -->
+    <section id="feedback-table" aria-live="polite" aria-busy="false">
+        @{
+            // render partial initially (server-side). Controller's Table action returns the same partial.
+            var tableTask = Html.PartialAsync("~/Views/Feedback/_FeedbackTable.cshtml", Model);
+        }
+        @await tableTask
+    </section>
+</section>
+
+@section Scripts {
+    <script>
+        // Helper: show a small inline spinner overlay before AJAX responses
+        const overlayHtml = "<div class='overlay-spinner position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-light bg-opacity-50'><div class='spinner-border' role='status'><span class='visually-hidden'>Loading...</span></div></div>";
+
+        // Submit filters via AJAX and replace the table
+        $(document).on("submit", "#feedback-filter", function (e) {
+            e.preventDefault();
+
+            // validate date range
+            const from = $("#fromDate").val();
+            const to = $("#toDate").val();
+            if (from && to && new Date(to) < new Date(from)) {
+                toastr.error("The end date must be later than the start date.");
+                return;
+            }
+
+            const $container = $("#feedback-table");
+            $container.attr("aria-busy", "true");
+            $container.css("position", "relative").append(overlayHtml);
+
+            $.ajax({
+                url: "@Url.Action("Table", "Feedback")",
+                type: "GET",
+                data: $(this).serialize(),
+                success: function (html) {
+                    $container.html(html);
+                    toastr.success("Feedback list updated.", "Success");
+                },
+                error: function () {
+                    toastr.error("Failed to load feedback. Please try again.", "Error");
+                },
+                complete: function () {
+                    $container.attr("aria-busy", "false");
+                    $container.find(".overlay-spinner").remove();
+                }
+            });
+        });
+
+        // Click rating button -> set hidden inputs and submit
+        $(document).on("click", ".rating-filter-btn", function (e) {
+            e.preventDefault();
+            const min = $(this).data("min");
+            const max = $(this).data("max");
+            $("#minStars").val(min ?? "");
+            $("#maxStars").val(max ?? "");
+            $("#feedback-filter").submit();
+        });
+
+        // When selecting car, auto submit (AJAX)
+        $(document).on("change", "#carId", function () {
+            $("#feedback-filter").submit();
+        });
+
+        // Intercept pagination links inside the table and load via AJAX
+        $(document).on("click", "#feedback-table .pagination a.page-link", function (e) {
+            e.preventDefault();
+            const url = $(this).attr("href");
+            const $container = $("#feedback-table");
+            $container.attr("aria-busy", "true");
+            $container.css("position", "relative").append(overlayHtml);
+
+            $.ajax({
+                url: url,
+                type: "GET",
+                success: function (html) {
+                    $container.html(html);
+                },
+                error: function () {
+                    toastr.error("Failed to load page. Please try again.");
+                },
+                complete: function () {
+                    $container.attr("aria-busy", "false");
+                    $container.find(".overlay-spinner").remove();
+                }
+            });
+        });
+
+        // show server-sent messages (TempData) via toastr
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>toastr.success("@TempData["SuccessMessage"]");</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>toastr.error("@TempData["ErrorMessage"]");</text>
+        }
+    </script>
+
+    <style>
+        /* small inline styles used by this page */
+        .overlay-spinner {
+            z-index: 9999;
+        }
+
+        /* make star group vertically centered */
+        .star-list {
+            font-size: 1rem;
+            line-height: 1;
+        }
+    </style>
+}

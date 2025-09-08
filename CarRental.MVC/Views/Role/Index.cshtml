@@ -1,0 +1,46 @@
+@using App.Areas.Identity.Models.RoleViewModels
+@model List<RoleModel>
+@{
+	ViewData["Title"] = "List of roles";
+}
+<h2>@ViewData["Title"]</h2>
+
+<partial name="_StatusMessage"></partial>
+
+
+<div class="mb-2">
+	<a class="btn btn-secondary" asp-action="Create">Create new role</a>
+	<a class="btn btn-secondary" asp-action="Index" asp-controller="User">Manage users</a>
+</div>
+
+<!-- Scrollable Table -->
+<div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+	<table class="table table-bordered table-hover">
+		<thead class="table-success" style="position: sticky; top: 0; z-index: 1;">
+			<tr>
+				<th onclick="alert('?')">Role Name<i class="fa fa-sort-amount-asc" aria-hidden="true"></i></th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody id="roleTable">
+			@foreach (var role in Model)
+			{
+				<tr>
+					<td>
+						<p>@role.Name</p>
+						@foreach (var claim in @role.Claims)
+						{
+							<small>@claim</small>
+
+							<br>
+						}
+					</td>
+					<td>
+						<a class="btn btn-success btn-sm" asp-action="Edit" asp-route-roleid="@role.Id">Update</a>
+						<a class="btn btn-success btn-sm" asp-action="Delete" asp-route-roleid="@role.Id">Delete</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>

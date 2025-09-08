@@ -1,0 +1,223 @@
+@using App.Areas.Identity.Models.ManageViewModels
+@using System.Text.Encodings.Web
+@using System.Text.Json
+@model EditExtraProfileModel
+@{
+	ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+@* <h4>@ViewData["Title"]</h4> *@
+
+<partial name="_StatusMessage" />
+
+<div class="card shadow-sm border-0 rounded-3 p-4" style="max-width: 700px; margin: auto;">
+	<h5 class="fw-bold mb-4">Edit Profile Information</h5>
+
+	<form id="profile-form" method="post" enctype="multipart/form-data">
+		<div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3"></div>
+
+		<!-- Username -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="UserName" class="col-sm-4 fw-semibold">Username</label>
+			<div class="col-sm-8">
+				<input asp-for="UserName" class="form-control" />
+				<span asp-validation-for="UserName" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- Full Name -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="FullName" class="col-sm-4 fw-semibold">Full Name</label>
+			<div class="col-sm-8">
+				<input asp-for="FullName" class="form-control"/>
+				<span asp-validation-for="FullName" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- Email -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="UserEmail" class="col-sm-4 fw-semibold">User Email</label>
+			<div class="col-sm-8">
+				<input asp-for="UserEmail" class="form-control" readonly />
+				<span asp-validation-for="UserEmail" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- Phone -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="PhoneNumber" class="col-sm-4 fw-semibold">Phone Number</label>
+			<div class="col-sm-8">
+				<input asp-for="PhoneNumber" class="form-control" />
+				<span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- Province -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="ProvinceName" class="col-sm-4 fw-semibold">Province</label>
+			<div class="col-sm-8">
+				<select id="province" class="form-select"></select>
+				<input asp-for="ProvinceName" type="hidden" />
+				<span asp-validation-for="ProvinceName" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- District -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="DistrictName" class="col-sm-4 fw-semibold">District</label>
+			<div class="col-sm-8">
+				<select id="district" class="form-select"></select>
+				<input asp-for="DistrictName" type="hidden" />
+				<span asp-validation-for="DistrictName" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- Ward -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="WardName" class="col-sm-4 fw-semibold">Ward</label>
+			<div class="col-sm-8">
+				<select id="ward" class="form-select"></select>
+				<input asp-for="WardName" type="hidden" />
+				<span asp-validation-for="WardName" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- Address -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="HomeAdress" class="col-sm-4 fw-semibold">Home Address</label>
+			<div class="col-sm-8">
+				<textarea asp-for="HomeAdress" class="form-control" rows="3" placeholder="Enter your home address..."></textarea>
+				<span asp-validation-for="HomeAdress" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- License ID -->
+		<div class="row mb-3 align-items-center">
+			<label asp-for="LicenseId" class="col-sm-4 fw-semibold">License ID</label>
+			<div class="col-sm-8">
+				<input asp-for="LicenseId" class="form-control" placeholder="Enter your license ID" />
+				<span asp-validation-for="LicenseId" class="text-danger small"></span>
+			</div>
+		</div>
+
+		<!-- License Image -->
+		<div class="row mb-3 align-items-start">
+			<label asp-for="LicenseImage" class="col-sm-4 fw-semibold">License Image</label>
+			<div class="col-sm-8">
+				<input asp-for="LicenseImage" type="file" class="form-control" accept="image/*" onchange="previewLicenseImage(event)" />
+				<input type="hidden" asp-for="LicenseImageUrl" /> <!-- Keep existing image URL -->
+
+				<img id="license-preview"
+					 src="@(string.IsNullOrEmpty(Model?.LicenseImageUrl) ? "#" : Model.LicenseImageUrl)"
+					 alt="License Preview"
+					 class="img-fluid rounded mt-2 shadow-sm @(string.IsNullOrEmpty(Model?.LicenseImageUrl) ? "d-none" : "")"
+					 style="max-height: 150px;" />
+
+				<span asp-validation-for="LicenseImage" class="text-danger small"></span>
+			</div>
+		</div>
+
+
+		<!-- Save Button -->
+		<div class="text-end">
+			<button type="submit" class="btn btn-warning px-4 fw-semibold">Save Changes</button>
+		</div>
+	</form>
+</div>
+
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+
+	<script>
+		const selectedProvince = @Html.Raw(Json.Serialize(Model.ProvinceName));
+		const selectedDistrict = @Html.Raw(Json.Serialize(Model.DistrictName));
+		const selectedWard = @Html.Raw(Json.Serialize(Model.WardName));
+
+		$(document).ready(function () {
+			// Load provinces
+			$.getJSON("https://open.oapi.vn/location/provinces?page=0&size=63", function (res) {
+				$("#province").append('<option value="">-- Select Province --</option>');
+
+				$.each(res.data, function (i, item) {
+					let selected = (item.name === selectedProvince) ? "selected" : "";
+					$("#province").append(`<option value="${item.id}" data-name="${item.name}" ${selected}>${item.name}</option>`);
+				});
+
+				if (selectedProvince) {
+					$("#ProvinceName").val(selectedProvince);
+					$("#province").trigger("change"); // load districts
+				}
+			});
+
+			// Province change
+			$("#province").on("change", function () {
+				let provinceId = $(this).val();
+				let provinceName = $("#province option:selected").data("name") || "";
+				$("#ProvinceName").val(provinceName);
+
+				$("#district").html('<option value="">-- Select District --</option>');
+				$("#DistrictName").val("");
+				$("#ward").html('<option value="">-- Select Ward --</option>');
+				$("#WardName").val("");
+
+				if (provinceId) {
+					$.getJSON(`https://open.oapi.vn/location/districts/${provinceId}?page=0&size=100`, function (res) {
+						$.each(res.data, function (i, item) {
+							let selected = (item.name === selectedDistrict) ? "selected" : "";
+							$("#district").append(`<option value="${item.id}" data-name="${item.name}" ${selected}>${item.name}</option>`);
+						});
+
+						if (selectedDistrict) {
+							$("#DistrictName").val(selectedDistrict);
+							$("#district").trigger("change"); // load wards
+						}
+					});
+				}
+			});
+
+			// District change
+			$("#district").on("change", function () {
+				let districtId = $(this).val();
+				let districtName = $("#district option:selected").data("name") || "";
+				$("#DistrictName").val(districtName);
+
+				$("#ward").html('<option value="">-- Select Ward --</option>');
+				$("#WardName").val("");
+
+				if (districtId) {
+					$.getJSON(`https://open.oapi.vn/location/wards/${districtId}?page=0&size=100`, function (res) {
+						$.each(res.data, function (i, item) {
+							let selected = (item.name === selectedWard) ? "selected" : "";
+							$("#ward").append(`<option value="${item.id}" data-name="${item.name}" ${selected}>${item.name}</option>`);
+						});
+
+						if (selectedWard) {
+							$("#WardName").val(selectedWard);
+						}
+					});
+				}
+			});
+
+			// Ward change
+			$("#ward").on("change", function () {
+				let wardName = $("#ward option:selected").data("name") || "";
+				$("#WardName").val(wardName);
+			});
+		});
+
+		function previewLicenseImage(event) {
+			const img = document.getElementById("license-preview");
+			const file = event.target.files[0];
+			if (file) {
+				img.src = URL.createObjectURL(file);
+				img.classList.remove("d-none");
+			}
+		}
+
+	</script>
+
+}
+
+
+

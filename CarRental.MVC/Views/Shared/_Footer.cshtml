@@ -1,0 +1,53 @@
+﻿<!-- Footer Start -->
+<div class="container-fluid bg-secondary py-5 px-sm-3 px-md-5" style="margin-top: 90px;">
+    <div class="row pt-5">
+        <div class="col-lg-3 col-md-6 mb-5">
+            <h4 class="text-uppercase text-light mb-4">Rent Cars</h4>
+            @if (!User.Identity.IsAuthenticated || (User.Identity.IsAuthenticated && User.IsInRole("Customer")))
+            {
+                // TODO: Sửa lại đường dẫn
+                <a class="text-light mb-2" href="@Url.Action("Index", "Home")">Search Cars and Rates</a>
+            }
+        </div>
+        <div class="col-lg-3 col-md-6 mb-5">
+            <h4 class="text-uppercase text-light mb-4">Customer Access</h4>
+            <div class="d-flex flex-column justify-content-start">
+                @if (!User.Identity.IsAuthenticated || (User.Identity.IsAuthenticated && User.IsInRole("Customer")))
+                {
+                    // TODO: Sửa lại đường dẫn
+                    <a class="text-light mb-2" href="@Url.Action("Index", "Home")">Manage My Booking</a>
+                }
+                
+                @if (User.Identity.IsAuthenticated)
+                {
+                    // TODO: Sửa lại đường dẫn
+                    <a class="text-light mb-2" href="@Url.Action("Index", "User")">My Wallet</a>
+                }
+                
+                @if (User.Identity.IsAuthenticated)
+                {
+                    if (User.IsInRole("Customer") || User.IsInRole("Owner"))
+                    {
+                        // TODO: Sửa lại đường dẫn
+                        <a class="text-light mb-2" href="@Url.Action("Index", "Car")">My Car</a>
+                    }
+                }
+                
+                @if (!User.Identity.IsAuthenticated)
+                {
+                    // TODO: Sửa lại đường dẫn
+                    <a class="text-light mb-2" href="@Url.Action("Index", "User")">Log In</a>
+                }
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 mb-5">
+            <h4 class="text-uppercase text-light mb-4">Join Us</h4>
+            @if (!User.Identity.IsAuthenticated)
+            {
+                // TODO: Sửa lại đường dẫn
+                <a class="text-light mb-2" href="@Url.Action("Index", "User")">New User Sign Up</a>
+            }
+        </div>
+    </div>
+</div>
+<!-- Footer End -->

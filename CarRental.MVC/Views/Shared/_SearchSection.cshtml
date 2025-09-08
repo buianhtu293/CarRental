@@ -1,0 +1,83 @@
+﻿@model CarRental.Application.DTOs.SearchFormModel
+
+<form id="search-form" asp-action="Search" asp-controller="Car" method="get" class="bg-light p-4 rounded mb-5 shadow-sm">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <h4 class="mb-3">Tìm xe cho chuyến đi của bạn</h4>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="Address" class="form-label"></label>
+            <input asp-for="Address" type="text" class="form-control" placeholder="Nhập địa chỉ cụ thể (số nhà, tên đường)">
+        </div>
+
+        <input type="hidden" asp-for="ProvinceName" />
+        <input type="hidden" asp-for="DistrictName" />
+        <input type="hidden" asp-for="WardName" />
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Tỉnh/Thành phố</label>
+            <select asp-for="ProvinceId" class="form-select" id="province-select">
+                <option value="" disabled selected >-- Chọn Tỉnh/Thành phố --</option>
+            </select>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Quận/Huyện</label>
+            <select asp-for="DistrictId" class="form-select" id="district-select" disabled>
+                <option value="">-- Chọn Quận/Huyện --</option>
+            </select>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Phường/Xã</label>
+            <select asp-for="WardId" class="form-select" id="ward-select" disabled>
+                <option value="">-- Chọn Phường/Xã --</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label>Thời gian nhận xe</label>
+            <div class="input-group">
+                <input asp-for="PickupDate" type="date" class="form-control" id="pickup-date" min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                <select asp-for="PickupTime" class="form-select" style="max-width: 120px;" id="pickup-time">
+                    @for (int i = 0; i < 24; i++)
+                    {
+                        <option value="@i">@i.ToString("00"):00</option>
+                    }
+                </select>
+            </div>
+            <span asp-validation-for="PickupDate" class="text-danger"></span>
+            <span asp-validation-for="PickupTime" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label>Thời gian trả xe</label>
+            <div class="input-group">
+                <input asp-for="ReturnDate" type="date" class="form-control" id="return-date">
+                <select asp-for="ReturnTime" class="form-select" style="max-width: 120px;" id="return-time">
+                    @for (int i = 0; i < 24; i++)
+                    {
+                        <option value="@i">@i.ToString("00"):00</option>
+                    }
+                </select>
+            </div>
+            <span asp-validation-for="ReturnDate" class="text-danger"></span>
+            <span asp-validation-for="ReturnTime" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div id="date-time-error" class="text-danger mb-3" style="display: none;">
+        Thời gian trả xe phải sau thời gian nhận xe.
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary w-100 mt-2">Tìm kiếm</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/location-picker.js"></script>
+}

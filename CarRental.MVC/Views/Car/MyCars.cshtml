@@ -1,0 +1,207 @@
+﻿@{
+    ViewData["Title"] = "My Cars";
+    bool newToOldSelected = ViewBag.NewToOld ?? true;
+}
+
+@using CarRental.Application.DTOs;
+@using CarRental.Domain.Models;
+@model PagedResult<ListMyCarDto>
+
+<div class="container py-4">
+    <div class="mb-3">
+        <a href="@Url.Action("Owner", "Home")" class="text-decoration-none">Home</a> &gt; <span>My Cars</span>
+    </div>
+    <h1 class="h4 mb-0">List of Cars</h1>
+    <div class="row mb-3">
+        <div class="col-md-8 mt-3 mt-md-0">
+            <a asp-action="Create" asp-controller="Car" class="btn btn-primary">Add Car</a>
+        </div>
+        
+        <div class="col-md-4 mt-3 mt-md-0">
+            <form method="get" id="sortForm" class="d-flex align-items-center">
+                <select name="newToOld" class="form-select" onchange="this.form.submit()">
+                    @if (newToOldSelected)
+                    {
+                        <option value="true" selected>Newest to Oldest</option>
+                        <option value="false">Oldest to Newest</option>
+                    }
+                    else
+                    {
+                        <option value="true">Newest to Oldest</option>
+                        <option value="false" selected>Oldest to Newest</option>
+                    }
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 g-4">
+        @foreach (var car in Model.Items)
+        {
+            <div class="col">
+                <div class="card shadow-sm border">
+                    <div class="row g-0">
+                        <!-- Carousel -->
+                        <div class="col-md-4 position-relative">
+                            <div id="carCarousel-@car.Id" class="carousel slide h-100" data-bs-ride="carousel">
+                                <div class="carousel-inner h-100">
+                                    @{
+                                        // Định nghĩa thứ tự ưu tiên
+                                        var order = new[] { "Front", "Back", "Left", "Right" };
+                                        var sortedDocs = car.CarDocuments
+                                        .Where(d => !string.IsNullOrEmpty(d.FilePath))
+                                        .OrderBy(d => Array.IndexOf(order, d.DocumentType))
+                                        .ToList();
+
+                                        // Nếu không có ảnh, thêm placeholder
+                                        if (!sortedDocs.Any())
+                                        {
+                                            sortedDocs.Add(new CarDocumentDto { FilePath = "/images/placeholder.jpg", DocumentType = "Placeholder" });
+                                        }
+
+                                        bool isFirst = true;
+                                    }
+
+                                    @foreach (var doc in sortedDocs)
+                                    {
+                                        <div class="carousel-item @(isFirst ? "active" : "") h-100">
+                                            <img src="@doc.FilePath" class="img-fluid w-100 h-100" alt="@doc.DocumentType" style="object-fit: cover; min-height: 200px;">
+                                        </div>
+                                        isFirst = false;
+                                    }
+                                </div>
+
+                                <button class="btn btn-dark btn-sm position-absolute top-50 start-0 translate-middle-y ms-2" style="opacity:0.7" type="button" data-bs-target="#carCarousel-@car.Id" data-bs-slide="prev">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="btn btn-dark btn-sm position-absolute top-50 end-0 translate-middle-y me-2" style="opacity:0.7" type="button" data-bs-target="#carCarousel-@car.Id" data-bs-slide="next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+
+                                <div class="carousel-indicators position-absolute bottom-0 start-50 translate-middle-x mb-2">
+                                    @for (int i = 0; i < sortedDocs.Count; i++)
+                                    {
+                                        <button type="button" data-bs-target="#carCarousel-@car.Id" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"></button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Car Info -->
+                        <div class="col-md-8">
+                            <div class="card-body d-flex flex-column h-100">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h5 class="card-title mb-0">@($"{car.Brand} {car.Model} {car.Year}")</h5>
+                                    <a href="@Url.Action("Edit", "Car", new { carId = car.Id })" class="btn btn-primary btn-sm">View details</a>
+                                </div>
+
+                                <!-- Ratings -->
+                                <div class="mb-2">
+                                    <span class="text-muted small">Ratings:</span>
+                                    @if (car.HasRatings)
+                                    {
+                                        @for (int i = 0; i < car.FullStars; i++)
+                                        {
+                                            <i class="fas fa-star text-warning"></i>
+                                        }
+                                        @if (car.HasHalfStar)
+                                        {
+                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                        }
+                                        @for (int i = 0; i < car.EmptyStars; i++)
+                                        {
+                                            <i class="far fa-star text-warning"></i>
+                                        }
+                                        <span class="text-muted small ms-1">(@car.FormattedAverageRating - @car.TotalReviews reviews)</span>
+                                    }
+                                    else
+                                    {
+                                        @for (int i = 0; i < 5; i++)
+                                        {
+                                            <i class="far fa-star text-muted"></i>
+                                        }
+                                        <span class="text-muted small ms-1">(No ratings yet)</span>
+                                    }
+                                </div>
+
+                                <div class="mb-2">
+                                    <span class="text-muted small">No. of rides:</span>
+                                    <span class="fw-bold">@car.NumberOfRides</span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <span class="text-muted small">Price:</span>
+                                    <span class="fw-bold text-dark">@(car.BasePricePerDay?.ToString("N0") ?? "0")k/day</span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <span class="text-muted small">Locations:</span>
+                                    @{
+                                        var parts = new List<string>();
+                                        if (!string.IsNullOrEmpty(car.Address)) parts.Add(car.Address);
+                                        if (!string.IsNullOrEmpty(car.Ward)) parts.Add(car.Ward);
+                                        if (!string.IsNullOrEmpty(car.District)) parts.Add(car.District);
+                                        if (!string.IsNullOrEmpty(car.Province)) parts.Add(car.Province);
+
+                                        var fullAddress = string.Join(", ", parts);
+                                    }
+                                    <span class="text-dark">@fullAddress</span>
+                                </div>
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small">Status:</span>
+                                    <span class="badge @(car.Status == "Available" ? "bg-success" : car.Status == "Stopped" ? "bg-danger" : "bg-primary")">@car.Status</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div>
+            Page @Model.Page of @Model.TotalPages
+        </div>
+        <div>
+            <nav>
+                <ul class="pagination mb-0">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.Page ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("MyCars", "Car", new { page = i, newToOld = ViewBag.NewToOld })">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        padding: 0.5rem 1rem;
+    }
+
+    .carousel-indicators [data-bs-target] {
+        background-color: #fff;
+        opacity: 0.7;
+    }
+
+    .carousel-indicators .active {
+        background-color: #ff6600;
+        opacity: 1;
+    }
+
+    .rating-stars i {
+        font-size: 0.9rem;
+    }
+</style>

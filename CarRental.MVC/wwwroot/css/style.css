@@ -1,0 +1,143 @@
+/* Royal Cars Custom Styles */
+
+:root {
+    --primary: #F77D0A;
+    --secondary: #2B2E4A;
+    --light: #F4F5F8;
+    --dark: #1C1E32;
+}
+
+body {
+    font-family: 'Rubik', sans-serif;
+    font-weight: 400;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
+
+.text-secondary {
+    color: var(--secondary) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary) !important;
+}
+
+.bg-secondary {
+    background-color: var(--secondary) !important;
+}
+
+.bg-light {
+    background-color: var(--light) !important;
+}
+
+.bg-dark {
+    background-color: var(--dark) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: #e06900;
+    border-color: #e06900;
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Navigation */
+.navbar-brand h1 {
+    color: var(--primary) !important;
+}
+
+.nav-bar {
+    background: var(--secondary) !important;
+}
+
+.navbar-nav .nav-link {
+    color: #ffffff !important;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 35px 20px !important;
+    transition: all 0.3s;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary) !important;
+}
+
+/* Cards */
+.rent-item {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, .1);
+    transition: all 0.3s;
+    border: 1px solid #f1f1f1;
+}
+
+.rent-item:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .15);
+}
+
+.rent-item img {
+    transition: all 0.3s;
+}
+
+.rent-item:hover img {
+    transform: scale(1.05);
+}
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(rgba(43, 46, 74, .8), rgba(43, 46, 74, .8));
+    background-size: cover;
+    background-position: center;
+    padding: 150px 0 60px 0;
+}
+
+/* Footer */
+.container-fluid.bg-secondary {
+    background-color: var(--secondary) !important;
+}
+
+.text-body {
+    color: #999999 !important;
+}
+
+/* Utilities */
+.text-uppercase {
+    text-transform: uppercase !important;
+}
+
+.border-primary {
+    border-color: var(--primary) !important;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .navbar-nav .nav-link {
+        padding: 15px 20px !important;
+    }
+    
+    .page-header {
+        padding: 100px 0 40px 0;
+    }
+}

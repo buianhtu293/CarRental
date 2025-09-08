@@ -1,0 +1,25 @@
+﻿@* 
+    Partial view: Confirm Deposit Modal (UC22)
+    This modal is reused in CarOwnerBooking/Index.cshtml.
+    Uses Bootstrap modal and semantic HTML (dialog role).
+*@
+<div class="modal fade" id="confirmDepositModal" tabindex="-1" aria-labelledby="confirmDepositLabel" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title h5" id="confirmDepositLabel">Confirm deposit</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </header>
+            <section class="modal-body">
+                <p>
+                    Please confirm that you have received the deposit for this booking.
+                    This will allow the customer to pick up the car at the agreed date and time.
+                </p>
+            </section>
+            <footer class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary" id="confirmDepositYesBtn">Yes</button>
+            </footer>
+        </div>
+    </div>
+</div>

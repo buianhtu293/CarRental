@@ -1,0 +1,37 @@
+﻿@model GuestHomepageViewModel
+@{
+    ViewBag.Title = "Customer Homepage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+
+    <section class="text-center mb-5">
+        <h2 class="fw-bold">Looking for a vehicle? You’re at the right place.</h2>
+        <p class="lead mt-3">
+            We have a large selection of locally owned cars available for you to choose from. Rental plans are customized to suit your needs. With over 300 cars located nationwide,
+            we will have something for you.
+        </p>
+    </section>
+
+    @Html.Partial("_SearchSection", Model.SearchFormModel)
+
+
+    <section class="mb-5">
+        <vc:why-us></vc:why-us>
+    </section>
+
+    <section class="mb-5">
+        <vc:feedback-section></vc:feedback-section>
+    </section>
+
+    <section class="mb-5">
+        <vc:where-to-find-us></vc:where-to-find-us>
+    </section>
+
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/location-picker.js">    
+    </script>
+}

@@ -1,0 +1,662 @@
+@using CarRental.Application.DTOs.Booking
+@using CarRental.Domain.Enums
+@using CarRental.MVC.Models.Booking
+@model PaymentViewModel
+
+@{
+    ViewData["Title"] = "Payment";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <h1 class="display-4 text-center mb-4 text-primary">Payment</h1>
+        
+        <!-- Progress Bar -->
+        @await Html.PartialAsync("_BookingProgress", Model.Progress)
+
+        <form asp-action="Payment" method="post" id="paymentForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="BookingSessionId" />
+            
+            <div class="row">
+                <!-- Left Column: Booking Summary -->
+                <div class="col-lg-5 mb-4">
+                    <!-- Multiple Cars Information -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cars mr-2"></i>
+                                Car Information (@Model.BookingSummary.NumberOfCars cars)
+                            </h5>
+                            @if (Model.BookingSummary.NumberOfCars > 1)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-light" id="toggleAllCars">
+                                    <i class="fas fa-expand-arrows-alt"></i> Collapse/Expand All
+                                </button>
+                            }
+                        </div>
+                        <div class="card-body p-0">
+                            @if (Model.BookingSummary.CarItems != null && Model.BookingSummary.CarItems.Any())
+                            {
+                                @for (int carIndex = 0; carIndex < Model.BookingSummary.CarItems.Count; carIndex++)
+                                {
+                                    var carItem = Model.BookingSummary.CarItems[carIndex];
+                                    var isFirstCar = carIndex == 0;
+
+                                    <!-- Car Accordion Item -->
+                                    <div class="car-accordion-item">
+                                        <div class="car-header @(!isFirstCar ? "border-top" : "")"
+                                             data-toggle="collapse"
+                                             data-target="#carCollapse@(carIndex)"
+                                             aria-expanded="@(isFirstCar ? "true" : "false")"
+                                             style="cursor: pointer; padding: 15px;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-car text-primary mr-2"></i>
+                                                    <strong>@carItem.CarName</strong>
+                                                    <span class="badge badge-success ml-2">Available</span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-muted mr-2">@carItem.PricePerDay.ToString("N0") VND/day</span>
+                                                    <i class="fas fa-chevron-down collapse-icon"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="carCollapse@(carIndex)" class="collapse @(isFirstCar ? "show" : "")" data-car-index="@carIndex">
+                                            <div class="car-details p-3" style="background: #f8f9fa;">
+                                                <div class="row">
+                                                    <div class="col-md-4 mb-3">
+                                                        <img src="/images/cars/default-car.jpg" alt="@carItem.CarName"
+                                                             class="img-fluid rounded" style="width: 100%; height: 100px; object-fit: cover;">
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <!-- Car details -->
+                                                        <p class="text-muted mb-1"><i class="fas fa-hashtag mr-1"></i>@carItem.LicensePlate</p>
+                                                        <p class="text-muted mb-1"><i class="fas fa-star mr-1 text-warning"></i>@carItem.AverageRating (@carItem.TotalTrips trips)</p>
+                                                        <p class="text-muted mb-1"><i class="fas fa-map-marker-alt mr-1"></i>@carItem.Location</p>
+
+                                                        <div class="row text-center mt-2">
+                                                            <div class="col-4">
+                                                                <small class="text-muted">Seats</small>
+                                                                <div class="font-weight-bold">@carItem.Seats</div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <small class="text-muted">Transmission</small>
+                                                                <div class="font-weight-bold">@carItem.Transmission</div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <small class="text-muted">Fuel</small>
+                                                                <div class="font-weight-bold">@carItem.FuelType</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Car pricing summary -->
+                                                <div class="mt-3 p-2 bg-white rounded">
+                                                    <div class="d-flex justify-content-between">
+                                                        <span>Rental price (@Model.BookingSummary.NumberOfDays days):</span>
+                                                        <span class="font-weight-bold text-primary">@carItem.SubTotal.ToString("N0") VND</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span>Deposit:</span>
+                                                        <span class="font-weight-bold text-warning">@carItem.Deposit.ToString("N0") VND</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Booking Summary -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-calculator mr-2"></i>Booking Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Rental period:</span>
+                                <span class="font-weight-bold">@Model.BookingSummary.NumberOfDays days</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Pick-up date:</span>
+                                <span>@Model.BookingSummary.PickupDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Return date:</span>
+                                <span>@Model.BookingSummary.ReturnDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Number of cars:</span>
+                                <span>@Model.BookingSummary.NumberOfCars cars</span>
+                            </div>
+                            <hr>
+
+                            @foreach (var item in Model.BookingSummary.CarItems)
+                            {
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">@item.CarName</small>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>@item.PricePerDay.ToString("N0") VND × @Model.BookingSummary.NumberOfDays days</span>
+                                        <span class="font-weight-bold">@item.SubTotal.ToString("N0") VND</span>
+                                    </div>
+                                </div>
+                            }
+
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="font-weight-bold">Total rental fee:</span>
+                                <span class="font-weight-bold text-primary">@Model.BookingSummary.TotalAmount.ToString("N0") VND</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold">Total deposit:</span>
+                                <span class="font-weight-bold text-warning">@Model.BookingSummary.TotalDeposit.ToString("N0") VND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column: Payment Methods -->
+                <div class="col-lg-7">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-credit-card mr-2"></i>Select Payment Method</h5>
+                            <small class="text-light">Choose one payment method below</small>
+                        </div>
+                        <div class="card-body">
+                            <!-- Wallet Payment -->
+                            @if (Model.PaymentMethods.Wallet.IsAvailable)
+                            {
+                                <div class="payment-option mb-4">
+                                    <div class="form-check payment-method-radio">
+                                        <input class="form-check-input payment-radio" type="radio" 
+                                               name="SelectedPaymentMethod" 
+                                               value="@((int)PaymentMethodTypeEnum.Wallet)" 
+                                               id="walletPayment">
+                                        <label class="form-check-label w-100" for="walletPayment">
+                                            <div class="payment-method-card">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="payment-icon mr-3">
+                                                        <i class="fas fa-wallet fa-2x text-primary"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-1">E-Wallet</h6>
+                                                        <p class="text-muted mb-1">Fast and secure payment</p>
+                                                        <div class="wallet-balance">
+                                                            <span class="font-weight-bold">Current balance: </span>
+                                                            <span class="@Model.PaymentMethods.Wallet.BalanceStatusClass">
+                                                                @Model.PaymentMethods.Wallet.CurrentBalance.ToString("N0") VND
+                                                            </span>
+                                                            <span class="badge @(Model.PaymentMethods.Wallet.HasSufficientFunds ? "badge-success" : "badge-warning") ml-2">
+                                                                @Model.PaymentMethods.Wallet.StatusText
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    @if (Model.PaymentMethods.Wallet.HasSufficientFunds)
+                                                    {
+                                                        <i class="fas fa-check-circle text-success fa-lg"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fas fa-exclamation-triangle text-warning fa-lg"></i>
+                                                    }
+                                                </div>
+                                                @if (!Model.PaymentMethods.Wallet.HasSufficientFunds)
+                                                {
+                                                    <div class="alert alert-warning mt-3 mb-0">
+                                                        <small>
+                                                            <i class="fas fa-info-circle mr-1"></i>
+                                                            Insufficient balance. Please add funds or choose another payment method.
+                                                        </small>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Cash Payment -->
+                            @if (Model.PaymentMethods.Cash.IsAvailable)
+                            {
+                                <div class="payment-option mb-4">
+                                    <div class="form-check payment-method-radio">
+                                        <input class="form-check-input payment-radio" type="radio" 
+                                               name="SelectedPaymentMethod" 
+                                               value="@((int)PaymentMethodTypeEnum.Cash)" 
+                                               id="cashPayment">
+                                        <label class="form-check-label w-100" for="cashPayment">
+                                            <div class="payment-method-card">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="payment-icon mr-3">
+                                                        <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-1">Cash</h6>
+                                                        <p class="text-muted mb-0">Pay cash when picking up the car</p>
+                                                    </div>
+                                                    <i class="fas fa-check-circle text-success fa-lg"></i>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="payment-details cash-details d-none mt-3">
+                                        <div class="alert alert-info">
+                                            <h6><i class="fas fa-info-circle mr-2"></i>Cash Payment Instructions</h6>
+                                            <p class="mb-2">@Model.PaymentMethods.Cash.Instructions</p>
+                                            <p class="mb-0"><strong>@Model.PaymentMethods.Cash.Note</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Bank Transfer Payment -->
+                            @if (Model.PaymentMethods.BankTransfer.IsAvailable)
+                            {
+                                <div class="payment-option mb-4">
+                                    <div class="form-check payment-method-radio">
+                                        <input class="form-check-input payment-radio" type="radio" 
+                                               name="SelectedPaymentMethod" 
+                                               value="@((int)PaymentMethodTypeEnum.BankTransfer)" 
+                                               id="bankTransferPayment">
+                                        <label class="form-check-label w-100" for="bankTransferPayment">
+                                            <div class="payment-method-card">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="payment-icon mr-3">
+                                                        <i class="fas fa-university fa-2x text-info"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-1">Bank Transfer</h6>
+                                                        <p class="text-muted mb-0">Transfer via bank or e-wallet</p>
+                                                    </div>
+                                                    <i class="fas fa-check-circle text-success fa-lg"></i>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="payment-details bank-transfer-details d-none mt-3">
+                                        <div class="alert alert-info">
+                                            <h6><i class="fas fa-university mr-2"></i>Bank Transfer Information</h6>
+                                            <p class="mb-2">@Model.PaymentMethods.BankTransfer.Instructions</p>
+                                            <p class="mb-0"><strong>@Model.PaymentMethods.BankTransfer.Note</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Validation error -->
+                            <span asp-validation-for="SelectedPaymentMethod" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-4">
+                        <a href="@Url.Action("BackToInformation", new { sessionId = Model.BookingSessionId })"
+                           class="btn btn-outline-secondary btn-block mb-2">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Information
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn" disabled>
+                            <i class="fas fa-credit-card mr-2"></i>Confirm Payment
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .car-accordion-item {
+            border-bottom: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+
+        .car-header {
+            transition: background-color 0.2s ease;
+        }
+
+        .car-header:hover {
+            background-color: #f1f3f4 !important;
+        }
+
+        .collapse-icon {
+            transition: transform 0.25s ease;
+            font-size: 14px;
+        }
+
+        .car-header[aria-expanded="true"] .collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Payment Method Styles */
+        .payment-method-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .payment-method-radio .form-check-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .payment-method-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Selected payment method styling - FIXED */
+        .payment-method-radio .form-check-input:checked ~ .form-check-label .payment-method-card {
+            border-color: #007bff !important;
+            background: #f8f9ff !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+        }
+
+        /* Remove selected styling when not checked */
+        .payment-method-radio .form-check-input:not(:checked) ~ .form-check-label .payment-method-card {
+            border-color: #e9ecef !important;
+            background: #fff !important;
+            box-shadow: none !important;
+        }
+
+        /* Disabled payment method styling */
+        .payment-method-radio .form-check-input:disabled ~ .form-check-label .payment-method-card {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .payment-method-radio .form-check-input:disabled ~ .form-check-label .payment-method-card:hover {
+            border-color: #e9ecef;
+            box-shadow: none;
+        }
+
+        .payment-icon {
+            width: 60px;
+            text-align: center;
+        }
+
+        .wallet-balance {
+            font-size: 0.9em;
+        }
+
+        #submitBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .payment-option {
+            transition: all 0.3s ease;
+        }
+
+        .payment-option.selected {
+            transform: translateY(-2px);
+        }
+
+        /* Additional styling for selected card */
+        .payment-method-card.selected-card {
+            border-color: #007bff !important;
+            background: #f8f9ff !important;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+            transform: scale(1.02);
+        }
+
+        .alert.position-fixed {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            z-index: 9999;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Ensure only one payment method can be selected at a time
+            $('.payment-radio').change(function() {
+                var selectedValue = $(this).val();
+                var $selectedOption = $(this).closest('.payment-option');
+                
+                // Remove selected class from all options
+                $('.payment-option').removeClass('selected');
+                
+                // Reset all card styles manually
+                $('.payment-method-card').each(function() {
+                    $(this).removeClass('selected-card');
+                    $(this).css({
+                        'border-color': '#e9ecef',
+                        'background': '#fff',
+                        'box-shadow': 'none'
+                    });
+                });
+                
+                // Add selected class to current option
+                $selectedOption.addClass('selected');
+                
+                // Apply selected styling to current card
+                var $selectedCard = $selectedOption.find('.payment-method-card');
+                $selectedCard.addClass('selected-card').css({
+                    'border-color': '#007bff',
+                    'background': '#f8f9ff',
+                    'box-shadow': '0 0 0 0.2rem rgba(0, 123, 255, 0.25)'
+                });
+                
+                // Hide all payment details first
+                $('.payment-details').addClass('d-none');
+                
+                // Show selected payment method details
+                if (selectedValue === '@((int)PaymentMethodTypeEnum.Cash)') {
+                    $('.cash-details').removeClass('d-none');
+                } else if (selectedValue === '@((int)PaymentMethodTypeEnum.BankTransfer)') {
+                    $('.bank-transfer-details').removeClass('d-none');
+                }
+                
+                // Enable submit button when a method is selected
+                $('#submitBtn').prop('disabled', false);
+                
+                // Update submit button text
+                updateSubmitButtonText(selectedValue);
+                
+                // Show notification
+                showPaymentNotification(selectedValue);
+            });
+
+            // Handle car accordion functionality
+            $('.car-header').on('click', function() {
+                var $header = $(this);
+                var target = $header.data('target');
+                var $icon = $header.find('.collapse-icon');
+                
+                $(target).collapse('toggle');
+                
+                setTimeout(function() {
+                    var isShown = $(target).hasClass('show');
+                    if (isShown) {
+                        $icon.css('transform', 'rotate(180deg)');
+                        $header.attr('aria-expanded', 'true');
+                    } else {
+                        $icon.css('transform', 'rotate(0deg)');
+                        $header.attr('aria-expanded', 'false');
+                    }
+                }, 50);
+            });
+
+            // Toggle all cars functionality
+            $('#toggleAllCars').click(function() {
+                var $button = $(this);
+                var $icon = $button.find('i');
+                
+                $button.prop('disabled', true);
+                
+                var allCollapsed = $('.car-accordion-item .collapse').not('.show').length === $('.car-accordion-item .collapse').length;
+                
+                $('.car-accordion-item .collapse').each(function(index) {
+                    var $collapse = $(this);
+                    setTimeout(function() {
+                        if (allCollapsed) {
+                            $collapse.collapse('show');
+                        } else {
+                            $collapse.collapse('hide');
+                        }
+                    }, index * 50);
+                });
+
+                setTimeout(function() {
+                    if (allCollapsed) {
+                        $icon.removeClass('fa-expand-arrows-alt').addClass('fa-compress-arrows-alt');
+                    } else {
+                        $icon.removeClass('fa-compress-arrows-alt').addClass('fa-expand-arrows-alt');
+                    }
+                    $button.prop('disabled', false);
+                }, 300);
+            });
+
+            // Form validation
+            $('#paymentForm').submit(function(e) {
+                var selectedPaymentMethod = $('input[name="SelectedPaymentMethod"]:checked').val();
+                
+                if (!selectedPaymentMethod) {
+                    e.preventDefault();
+                    showNotification('Please select a payment method', 'error');
+                    return false;
+                }
+                
+                // Check wallet balance if wallet is selected
+                if (selectedPaymentMethod === '@((int)PaymentMethodTypeEnum.Wallet)') {
+                    var hasSufficientFunds = @Model.PaymentMethods.Wallet.HasSufficientFunds.ToString().ToLower();
+                    if (!hasSufficientFunds) {
+                        e.preventDefault();
+                        showNotification('Insufficient wallet balance for payment', 'error');
+                        return false;
+                    }
+                }
+                
+                // Show loading state
+                $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Processing...');
+            });
+
+            // Disable wallet option if insufficient funds
+            @if (Model.PaymentMethods.Wallet.IsAvailable && !Model.PaymentMethods.Wallet.HasSufficientFunds)
+            {
+                <text>
+                $('#walletPayment').prop('disabled', true);
+                </text>
+            }
+
+            // Set default selection based on availability and funds
+            setDefaultPaymentMethod();
+        });
+
+        function setDefaultPaymentMethod() {
+            // Clear any existing selections first
+            $('.payment-radio').prop('checked', false);
+            $('.payment-option').removeClass('selected');
+            $('.payment-method-card').removeClass('selected-card').css({
+                'border-color': '#e9ecef',
+                'background': '#fff',
+                'box-shadow': 'none'
+            });
+            
+            // Priority: Wallet (if sufficient funds) > Cash > Bank Transfer
+            @if (Model.PaymentMethods.Wallet.IsAvailable && Model.PaymentMethods.Wallet.HasSufficientFunds)
+            {
+                <text>
+                $('#walletPayment').prop('checked', true).trigger('change');
+                </text>
+            }
+            else if (Model.PaymentMethods.Cash.IsAvailable)
+            {
+                <text>
+                $('#cashPayment').prop('checked', true).trigger('change');
+                </text>
+            }
+            else if (Model.PaymentMethods.BankTransfer.IsAvailable)
+            {
+                <text>
+                $('#bankTransferPayment').prop('checked', true).trigger('change');
+                </text>
+            }
+        }
+
+        function updateSubmitButtonText(paymentMethod) {
+            var btnText = '<i class="fas fa-credit-card mr-2"></i>Confirm Payment';
+            
+            if (paymentMethod === '@((int)PaymentMethodTypeEnum.Wallet)') {
+                btnText = '<i class="fas fa-wallet mr-2"></i>Pay with Wallet';
+            } else if (paymentMethod === '@((int)PaymentMethodTypeEnum.Cash)') {
+                btnText = '<i class="fas fa-money-bill-wave mr-2"></i>Confirm Cash Booking';
+            } else if (paymentMethod === '@((int)PaymentMethodTypeEnum.BankTransfer)') {
+                btnText = '<i class="fas fa-university mr-2"></i>Confirm Bank Transfer';
+            }
+            
+            $('#submitBtn').html(btnText);
+        }
+
+        function showPaymentNotification(paymentMethod) {
+            var message = '';
+            var type = 'info';
+            
+            if (paymentMethod === '@((int)PaymentMethodTypeEnum.Wallet)') {
+                message = 'E-Wallet payment selected. Amount will be deducted from your wallet.';
+                type = 'success';
+            } else if (paymentMethod === '@((int)PaymentMethodTypeEnum.Cash)') {
+                message = 'Cash payment selected. Please bring cash when picking up the car.';
+            } else if (paymentMethod === '@((int)PaymentMethodTypeEnum.BankTransfer)') {
+                message = 'Bank transfer selected. Please follow the transfer instructions below.';
+            }
+            
+            if (message) {
+                showNotification(message, type);
+            }
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            var alertClass = 'alert-' + (type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info');
+            var notification = $('<div class="alert ' + alertClass + ' alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; min-width: 300px;" role="alert">' +
+                message +
+                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                '<span aria-hidden="true">&times;</span>' +
+                '</button>' +
+                '</div>');
+            
+            $('body').append(notification);
+            
+            // Auto remove after 4 seconds
+            setTimeout(function() {
+                notification.alert('close');
+            }, 4000);
+        }
+    </script>
+}

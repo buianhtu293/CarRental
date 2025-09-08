@@ -1,0 +1,58 @@
+﻿@using CarRental.Application.DTOs.Wallet
+@using CarRental.Shared.Utils
+@model IReadOnlyList<WalletEntryResponseDto>
+@{
+    // Explicitly disable layout for this partial view
+    Layout = null;
+    
+    var paging = (ShopNow.Presentation.Models.PagingModel)(ViewBag.Paging ?? ViewData["Paging"]);
+}
+
+<!-- Wallet transactions table -->
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+    <tr>
+        <th style="width:70px;">No</th>
+        <th>Amount</th>
+        <th>Type</th>
+        <th>Date time</th>
+        <th>Booking No.</th>
+        <th>Car Name</th>
+        <th>Note</th>
+    </tr>
+    </thead>
+    <tbody>
+    @if (Model != null && Model.Count > 0)
+    {
+        var idxStart = (paging?.currentpage - 1 ?? 0) * (ViewBag.PageSize ?? 10);
+        var idx = 1;
+        foreach (var t in Model)
+        {
+            <tr>
+                <td>@(idxStart + idx)</td>
+                <td class="fw-bold @(t.Amount >= 0 ? "text-success" : "text-danger")">
+                    @(t.Amount >= 0 ? "+" : "")@t.Amount.ToString("N0")
+                </td>
+                <td>@t.Type.FromEnumToString()</td>
+                <td>@t.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@(string.IsNullOrEmpty(t.BookingNumber) ? "N/A" : t.BookingNumber)</td>
+                <td>@(string.IsNullOrWhiteSpace(t.CarName) ? "N/A" : t.CarName)</td>
+                <td>@t.Note</td>
+            </tr>
+            idx++;
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="7" class="text-center">No transactions found.</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<!-- Pagination partial -->
+@if (paging != null)
+{
+    @await Html.PartialAsync("~/Views/Shared/_Paging.cshtml", paging)
+}

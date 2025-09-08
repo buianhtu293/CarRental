@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] - ROYAL CARS</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Car Rental Service" name="keywords">
+    <meta content="Professional Car Rental Service" name="description">
+
+    <!-- Favicon -->
+    <link href="~/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rubik&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome 6.5.1 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css"
+        rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
+    <!-- Custom CSS -->
+    <link href="~/css/style.css" rel="stylesheet">
+
+    <!-- Global Icon Spacing Fix -->
+    <style>
+        /* Fix icon spacing throughout the application */
+        .fas, .far, .fab, .fal {
+            margin-right: 0.25rem !important;
+        }
+        
+        /* Specific spacing for different contexts */
+        h1 .fas, h1 .far, h1 .fab, h1 .fal,
+        h2 .fas, h2 .far, h2 .fab, h2 .fal,
+        h3 .fas, h3 .far, h3 .fab, h3 .fal,
+        h4 .fas, h4 .far, h4 .fab, h4 .fal,
+        h5 .fas, h5 .far, h5 .fab, h5 .fal,
+        h6 .fas, h6 .far, h6 .fab, h6 .fal {
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Buttons need more space */
+        .btn .fas, .btn .far, .btn .fab, .btn .fal {
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Icons after text should have left margin instead */
+        .btn .fas + .fas, .btn .far + .far, .btn .fab + .fab, .btn .fal + .fal,
+        .fas.ml-2, .far.ml-2, .fab.ml-2, .fal.ml-2 {
+            margin-right: 0 !important;
+            margin-left: 0.5rem !important;
+        }
+        
+        /* Icons in specific contexts that need exact spacing */
+        .mr-1 { margin-right: 0.25rem !important; }
+        .mr-2 { margin-right: 0.5rem !important; }
+        .mr-3 { margin-right: 1rem !important; }
+        .ml-1 { margin-left: 0.25rem !important; }
+        .ml-2 { margin-left: 0.5rem !important; }
+        .ml-3 { margin-left: 1rem !important; }
+        
+        /* Alert icons */
+        .alert .fas, .alert .far, .alert .fab, .alert .fal {
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Modal icons */
+        .modal-title .fas, .modal-title .far, .modal-title .fab, .modal-title .fal {
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Card header icons */
+        .card-header .fas, .card-header .far, .card-header .fab, .card-header .fal {
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Breadcrumb icons */
+        .breadcrumb .fas, .breadcrumb .far, .breadcrumb .fab, .breadcrumb .fal {
+            margin-right: 0.25rem !important;
+        }
+        
+        /* Navbar icons */
+        .navbar .fas, .navbar .far, .navbar .fab, .navbar .fal {
+            margin-right: 0.5rem !important;
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+    <!-- Header -->
+    @await Html.PartialAsync("_Header")
+
+    <!-- Main Content -->
+    <main>
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    @await Html.PartialAsync("_Footer")
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Owl Carousel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+
+    <!-- Tempus Dominus -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js">
+    </script>
+    
+    <!-- Toastr global configuration -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        // Configure toastr options
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+    </script>
+
+
+    <!-- Custom JS -->
+    <script src="~/js/main.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

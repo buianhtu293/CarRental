@@ -1,0 +1,64 @@
+﻿@model CarRental.MVC.Models.CarOwnerBooking.CarOwnerBookingItemViewModel
+@{
+    ViewData["Title"] = "Booking Detail";
+    Layout = "_Layout";
+}
+
+<section class="container my-4" aria-labelledby="booking-detail-heading">
+    <header class="mb-3">
+        <h2 id="booking-detail-heading" class="h4">Booking Item Detail</h2>
+    </header>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Car</dt>
+                <dd class="col-sm-9">@Model.CarName</dd>
+
+                <dt class="col-sm-3">Car Brand</dt>
+                <dd class="col-sm-9">@Model.CarBrand</dd>
+
+                <dt class="col-sm-3">Car Model</dt>
+                <dd class="col-sm-9">@Model.CarModel</dd>
+
+                <dt class="col-sm-3">License Plate</dt>
+                <dd class="col-sm-9">@Model.LicensePlate</dd>
+
+                <dt class="col-sm-3">Customer</dt>
+                <dd class="col-sm-9">@Model.CustomerName</dd>
+
+                <dt class="col-sm-3">Phone</dt>
+                <dd class="col-sm-9">@Model.CustomerPhone</dd>
+
+                <dt class="col-sm-3">Start Date</dt>
+                <dd class="col-sm-9">@Model.StartDate.ToString("dd/MM/yyyy")</dd>
+
+                <dt class="col-sm-3">End Date</dt>
+                <dd class="col-sm-9">@Model.EndDate.ToString("dd/MM/yyyy")</dd>
+
+                <dt class="col-sm-3">Price Per Day</dt>
+                <dd class="col-sm-9">@Model.PricePerDay.ToString("C")</dd>
+
+                <dt class="col-sm-3">Deposit</dt>
+                <dd class="col-sm-9">@Model.Deposit.ToString("C")</dd>
+
+                <dt class="col-sm-3">Sub Total</dt>
+                <dd class="col-sm-9">@Model.SubTotal.ToString("C")</dd>
+
+                <dt class="col-sm-3">Total Price</dt>
+                <dd class="col-sm-9">@Model.TotalPrice.ToString("C")</dd>
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9"><span class="badge bg-info">@Model.Status</span></dd>
+            </dl>
+        </div>
+    </div>
+
+    <footer class="mt-3">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </footer>
+</section>
+
+@section Scripts {
+    
+}

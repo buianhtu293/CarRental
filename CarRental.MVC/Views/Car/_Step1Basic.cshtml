@@ -1,0 +1,311 @@
+﻿<div class="container-fluid" id="step1">
+    <div class="container">
+        <p class="text-danger fw-bold">
+            Note: Please check your information carefully, you'll not be able to change the basic details of your car, which is based on the registration information
+        </p>
+
+        <div class="row">
+            <!-- License plate -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">License plate: <span class="text-danger">*</span></label>
+                <input type="text" name="LicensePlate" class="form-control" />
+                <span class="error" id="error-LicensePlate"></span>
+            </div>
+
+            <!-- Color -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Color: <span class="text-danger">*</span></label>
+                <select class="form-select" name="Color">
+                    <option value="">Choose color</option>
+                    <option>White</option>
+                    <option>Black</option>
+                    <option>Gray</option>
+                    <option>Silver</option>
+                    <option>Red</option>
+                    <option>Blue</option>
+                    <option>Brown</option>
+                    <option>Green</option>
+                    <option>Beige</option>
+                    <option>Gold</option>
+                    <option>Yellow</option>
+                    <option>Purple</option>
+                </select>
+                <span class="error" id="error-Color"></span>
+            </div>
+
+            <!-- Brand -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Brand name: <span class="text-danger">*</span></label>
+                <select id="BrandSelect" name="Brand" class="form-control">
+                    <option value="">-- Select Brand --</option>
+                </select>
+                <span class="error" id="error-Brand"></span>
+            </div>
+
+            <!-- Model -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Model: <span class="text-danger">*</span></label>
+                <select id="ModelSelect" name="Model" class="form-control" disabled>
+                    <option value="">-- Select Model --</option>
+                </select>
+                <span class="error" id="error-Model"></span>
+            </div>
+
+            <!-- Production year -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Production year: <span class="text-danger">*</span></label>
+                <select class="form-select" name="ProductionYear">
+                    <option value="0">Choose year</option>
+                    @for (int year = 2030; year >= 1990; year--)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </select>
+                <span class="error" id="error-ProductionYear"></span>
+            </div>
+
+            <!-- Seats -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">No. of seats: <span class="text-danger">*</span></label>
+                <input type="number" name="Seats" class="form-control" min="1" max="1000" />
+                <span class="error" id="error-Seats"></span>
+            </div>
+
+            <!-- Transmission -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Transmission: <span class="text-danger">*</span></label><br />
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="Transmission" id="auto" value="Automatic" checked>
+                    <label class="btn btn-outline-primary" for="auto">Automatic</label>
+
+                    <input type="radio" class="btn-check" name="Transmission" id="manual" value="Manual">
+                    <label class="btn btn-outline-primary" for="manual">Manual</label>
+                </div>
+            </div>
+
+            <!-- Fuel -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fuel: <span class="text-danger">*</span></label><br />
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="FuelType" id="gasoline" value="Gasoline" checked>
+                    <label class="btn btn-outline-primary" for="gasoline">Gasoline</label>
+
+                    <input type="radio" class="btn-check" name="FuelType" id="diesel" value="Diesel">
+                    <label class="btn btn-outline-primary" for="diesel">Diesel</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <h5 class="mt-4">Documents</h5>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Registration paper: <span class="text-danger">*</span></label>
+                <input type="file" class="form-control" name="RegistrationPaper" />
+                <span class="error" id="error-RegistrationPaper"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Certificate of inspection: <span class="text-danger">*</span></label>
+                <input type="file" class="form-control" name="CertificateOfInspection" />
+                <span class="error" id="error-CertificateOfInspection"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Insurance:</label>
+                <input type="file" class="form-control" name="Insurance" />
+                <span class="error" id="error-Insurance"></span>
+            </div>
+        </div>
+
+        <p class="text-muted">File type: .doc, .docx, .pdf, .jpg, .jpeg, .png</p>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Cancel" asp-controller="Car" class="btn btn-link">Cancel</a>
+            <button type="button" class="btn btn-primary" onclick="saveStep1()">Next</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error {
+        color: red;
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+    const allowedExt = [".doc", ".docx", ".pdf", ".jpg", ".jpeg", ".png"];
+
+    const getExt = file => "." + file.split(".").pop().toLowerCase();
+    const getData = () => JSON.parse(sessionStorage.getItem("CarCreateData") || "{}");
+    const setData = data => sessionStorage.setItem("CarCreateData", JSON.stringify(data));
+
+    // function addOrUpdateDoc(obj, type, file) {
+    //     if (!file) return;
+
+    //     obj.CarDocuments = obj.CarDocuments || [];
+    //     const idx = obj.CarDocuments.findIndex(d => d.documentType === type);
+
+    //     const previewUrl = URL.createObjectURL(file);
+
+    //     const docMeta = {
+    //         documentType: type,
+    //         filePath: file.name,
+    //         previewUrl: previewUrl,
+    //         file: file
+    //     };
+
+    //     if (idx >= 0) obj.CarDocuments[idx] = docMeta;
+    //     else obj.CarDocuments.push(docMeta);
+    // }
+
+    function addOrUpdateDoc(obj, type, file) {
+        if (!file) return;
+
+        // đảm bảo đã có biến global
+        window.carFiles = window.carFiles || {};
+
+        obj.CarDocuments = obj.CarDocuments || [];
+        const idx = obj.CarDocuments.findIndex(d => d.documentType === type);
+
+        const docMeta = {
+            documentType: type,
+            fileName: file.name,
+            previewUrl: URL.createObjectURL(file)
+        };
+
+        // Lưu file thật ở global var (sẽ gửi bằng FormData khi submit cuối cùng)
+        window.carFiles[type] = file;
+
+        if (idx >= 0) obj.CarDocuments[idx] = docMeta;
+        else obj.CarDocuments.push(docMeta);
+    }
+
+    async function validateStep1() {
+        const step = document.getElementById("step1");
+        const errors = {};
+        const files = {
+            reg: step.querySelector('[name="RegistrationPaper"]').files[0],
+            insp: step.querySelector('[name="CertificateOfInspection"]').files[0],
+            ins: step.querySelector('[name="Insurance"]').files[0]
+        };
+
+        const fields = ["LicensePlate", "Color", "Brand", "Model", "ProductionYear", "Seats"];
+        fields.forEach(f => {
+            const val = step.querySelector(`[name="${f}"]`).value.trim();
+            if (!val || val === "0") errors[f] = `${f.replace(/([A-Z])/g, ' $1')} is required.`;
+        });
+
+        if (!files.reg) errors.RegistrationPaper = "Registration paper is required.";
+        else if (!allowedExt.includes(getExt(files.reg.name))) errors.RegistrationPaper = `Allowed: ${allowedExt.join(", ")}`;
+
+        if (!files.insp) errors.CertificateOfInspection = "Certificate of inspection is required.";
+        else if (!allowedExt.includes(getExt(files.insp.name))) errors.CertificateOfInspection = `Allowed: ${allowedExt.join(", ")}`;
+
+        if (files.ins && !allowedExt.includes(getExt(files.ins.name))) errors.Insurance = `Allowed: ${allowedExt.join(", ")}`;
+
+        // Check duplicate license plate
+        const licensePlate = step.querySelector('[name="LicensePlate"]').value.trim();
+        if (licensePlate) {
+            try {
+                const res = await fetch(`/Car/CheckLicensePlate?licensePlate=${encodeURIComponent(licensePlate)}`);
+                const data = await res.json();
+                if (!data.valid) {
+                    errors.LicensePlate = data.message || "License plate already exists.";
+                }
+            } catch (err) {
+                console.error("Check license plate error:", err);
+                errors.LicensePlate = "Cannot validate license plate at the moment.";
+            }
+        }
+
+        return { errors, files };
+    }
+
+    function renderErrors(errors) {
+        document.querySelectorAll("#step1 .error").forEach(e => e.innerText = "");
+        Object.entries(errors).forEach(([k, msg]) => {
+            const el = document.getElementById("error-" + k);
+            if (el) el.innerText = msg;
+        });
+    }
+
+    async function saveStep1() {
+        const { errors, files } = await validateStep1();
+        renderErrors(errors);
+
+        const data = getData();
+        data.step1 = {
+            LicensePlate: document.querySelector('[name="LicensePlate"]').value.trim(),
+            Color: document.querySelector('[name="Color"]').value.trim(),
+            Brand: document.querySelector('[name="Brand"]').value.trim(),
+            Model: document.querySelector('[name="Model"]').value.trim(),
+            ProductionYear: document.querySelector('[name="ProductionYear"]').value,
+            Seats: document.querySelector('[name="Seats"]').value,
+            Transmission: document.querySelector('[name="Transmission"]:checked')?.value || "",
+            FuelType: document.querySelector('[name="FuelType"]:checked')?.value || ""
+        };
+
+        addOrUpdateDoc(data, "RegistrationPaper", files.reg);
+        addOrUpdateDoc(data, "CertificateOfInspection", files.insp);
+        addOrUpdateDoc(data, "Insurance", files.ins);
+
+        if (Object.keys(errors).length > 0 && !data.firstErrorStep) {
+           data.firstErrorStep = 1; // chỉ set nếu errors không rỗng
+        } else if (Object.keys(errors).length === 0) {
+           // xóa firstErrorStep nếu step này đã được sửa lỗi
+           if (data.firstErrorStep === 1) delete data.firstErrorStep;
+        }
+
+        setData(data);
+        const hay = getData();
+        console.log(hay)
+
+        nextStep();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Load brand list
+        fetch('https://localhost:7092/api/brand/list')
+            .then(r => r.json())
+            .then(res => {
+                const sel = document.querySelector('[name="Brand"]');
+                sel.innerHTML = '<option value="">-- Select Brand --</option>';
+                (res?.data || []).forEach(b => {
+                    sel.innerHTML += `<option value="${b}">${b}</option>`;
+                });
+            });
+
+        // Load model list when brand changes
+        document.querySelector('[name="Brand"]').addEventListener('change', function () {
+            const brand = this.value;
+            const modelSel = document.querySelector('[name="Model"]');
+            modelSel.innerHTML = '<option value="">-- Select Model --</option>';
+            modelSel.disabled = !brand;
+            if (brand) {
+                fetch(`https://localhost:7092/api/brand/${encodeURIComponent(brand)}/models`)
+                    .then(r => r.json())
+                    .then(res => {
+                        (res?.data || []).forEach(m => {
+                            modelSel.innerHTML += `<option value="${m}">${m}</option>`;
+                        });
+                        modelSel.disabled = false;
+                    });
+            }
+        });
+
+        // Prefill data if coming back from later step
+        const saved = getData().step1;
+        if (saved) {
+            for (let k in saved) {
+                const el = document.querySelector(`[name="${k}"]`);
+                if (!el) continue;
+                if (el.type === "radio") {
+                    document.querySelector(`[name="${k}"][value="${saved[k]}"]`)?.click();
+                } else {
+                    el.value = saved[k];
+                }
+            }
+        }
+    });
+</script>
+

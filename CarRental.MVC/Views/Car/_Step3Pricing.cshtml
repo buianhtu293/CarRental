@@ -1,0 +1,254 @@
+﻿<!-- _Step3Pricing.cshtml -->
+<!-- Contact Start -->
+<div class="container-fluid">
+    <div class="container">
+        <div class="row">
+            <!-- Base price -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Set base price for your car:</label>
+            </div>
+            <div class="col-md-8 mb-3">
+                <input name="BasePricePerDay" type="number" min="0" max="1000000000" /> VND/Day
+                <span class="text-danger" data-error-for="BasePricePerDay"></span>
+            </div>
+
+            <!-- Deposit -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Required deposit:</label>
+            </div>
+            <div class="col-md-8 mb-3">
+                <input name="RequiredDeposit" type="number" min="0" max="1000000000" /> VND
+                <span class="text-danger" data-error-for="RequiredDeposit"></span>
+            </div>
+        </div>
+
+        <!-- Terms of Use -->
+        <div class="col-12 mt-4">
+            <label><strong>Terms of use</strong></label>
+            <div class="row">
+                <!-- Cột bên trái -->
+                <div class="col-md-3 mb-2">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="NoSmoking" name="TermsOfUse" value="NoSmoking">
+                        <label class="form-check-label" for="NoSmoking">No smoking</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="NoPet" name="TermsOfUse" value="NoPet">
+                        <label class="form-check-label" for="NoPet">No pet</label>
+                    </div>
+                </div>
+
+                <!-- Cột bên phải -->
+                <div class="col-md-3 mb-2">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="NoFood" name="TermsOfUse" value="NoFood">
+                        <label class="form-check-label" for="NoFood">No food in car</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="OtherTerm" name="TermsOfUse" value="Other">
+                        <label class="form-check-label" for="OtherTerm">Other</label>
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label for="OtherDetails" class="small">Please specify:</label>
+                        <textarea class="form-control" id="OtherDetails" name="OtherDetails" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Cancel" asp-controller="Car" class="btn btn-link">Cancel</a>
+            <button type="button" class="btn btn-primary" onclick="saveStep3()">Next</button>
+        </div>
+    </div>
+</div>
+<!-- Contact End -->
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        restoreStep3Form();
+    });
+
+    function clearStep3Errors() {
+        document.querySelectorAll('[data-error-for]').forEach(span => {
+            span.textContent = "";
+        });
+    }
+
+    function renderStep3Errors(errors) {
+        for (let field in errors) {
+            const el = document.querySelector(`[data-error-for="${field}"]`);
+            if (el) el.textContent = errors[field];
+        }
+    }
+
+    function validateStep3() {
+        const errors = {};
+
+        const basePrice = parseFloat(document.querySelector('[name="BasePricePerDay"]')?.value || "");
+        if (!isNaN(basePrice) && (basePrice < 0 || basePrice > 1000000000)) {
+            errors.BasePricePerDay = "Base price must be between 0 and 1,000,000,000 VND";
+        }
+
+        const deposit = parseFloat(document.querySelector('[name="RequiredDeposit"]')?.value || "");
+        if (!isNaN(deposit) && (deposit < 0 || deposit > 1000000000)) {
+            errors.RequiredDeposit = "Deposit must be between 0 and 1,000,000,000 VND";
+        }
+
+        const otherChecked = document.querySelector('#OtherTerm')?.checked;
+        const otherDetails = document.querySelector('#OtherDetails')?.value.trim();
+        if (otherChecked && !otherDetails) {
+            errors.OtherDetails = "Please specify details for 'Other'";
+        }
+
+        return errors;
+    }
+
+        function restoreStep3Form() {
+        const stepData = JSON.parse(sessionStorage.getItem("CarCreateData") || "{}");
+        const step3 = stepData.step3 || {};
+
+        // Restore giá
+        if (step3.BasePricePerDay != null) {
+            document.querySelector('[name="BasePricePerDay"]').value = step3.BasePricePerDay || "";
+        }
+        if (step3.RequiredDeposit != null) {
+            document.querySelector('[name="RequiredDeposit"]').value = step3.RequiredDeposit || "";
+        }
+
+        // Restore TermsOfUse
+        if (Array.isArray(step3.CarSpecifications)) {
+            const terms = step3.CarSpecifications;
+            document.querySelectorAll('input[name="TermsOfUse"]').forEach(cb => cb.checked = false);
+            document.querySelector('#OtherDetails').value = "";
+
+            terms.forEach(spec => {
+                if (spec.name === "Other") {
+                    document.querySelector('#OtherTerm').checked = true;
+                } else if (['NoSmoking','NoPet','NoFood'].includes(spec.name)) {
+                    const cb = document.querySelector(`[name="TermsOfUse"][value="${spec.name}"]`);
+                    if(cb) cb.checked = spec.required;
+                } else {
+                    document.querySelector('#OtherTerm').checked = true;
+                    document.querySelector('#OtherDetails').value = spec.name;
+                }
+            });
+        }
+
+        // Restore lỗi
+        if (step3.errors) {
+            renderStep3Errors(step3.errors);
+        }
+    }
+
+    function saveStep3() {
+        clearStep3Errors();
+        const errors = validateStep3();
+        renderStep3Errors(errors);
+
+        let stepData = JSON.parse(sessionStorage.getItem("CarCreateData") || "{}");
+        stepData.step3 = stepData.step3 || {};
+
+        // Lưu giá trị
+        const basePriceVal = document.querySelector('[name="BasePricePerDay"]')?.value.trim();
+        stepData.step3.BasePricePerDay = basePriceVal !== "" ? parseFloat(basePriceVal) : null;
+
+        const depositVal = document.querySelector('[name="RequiredDeposit"]')?.value.trim();
+        stepData.step3.RequiredDeposit = depositVal !== "" ? parseFloat(depositVal) : null;
+
+        // Lưu TermsOfUse
+        stepData.step3.CarSpecifications = [];
+        document.querySelectorAll('input[name="TermsOfUse"]').forEach(cb => {
+            if (cb.value !== "Other") {
+                stepData.step3.CarSpecifications.push({
+                    name: cb.value,
+                    required: cb.checked,
+                });
+            }
+        });
+
+        // Lưu Other
+        const otherChecked = document.querySelector('#OtherTerm')?.checked;
+        const otherDetails = document.querySelector('#OtherDetails')?.value.trim();
+        if (otherChecked) {
+            stepData.step3.CarSpecifications.push({ name: "Other", required: true });
+            if (otherDetails) {
+                stepData.step3.CarSpecifications.push({ name: otherDetails, required: true });
+            }
+        }
+
+        // Lưu lỗi
+        stepData.step3.errors = errors;
+
+        if (Object.keys(errors).length > 0 && !data.firstErrorStep) {
+           stepData.firstErrorStep = 3; // chỉ set nếu errors không rỗng
+        } else if (Object.keys(errors).length === 0) {
+           // xóa firstErrorStep nếu step này đã được sửa lỗi
+           if (stepData.firstErrorStep === 3) delete data.firstErrorStep;
+        }
+
+        sessionStorage.setItem("CarCreateData", JSON.stringify(stepData));
+
+        loadStep4();
+    }
+
+        function initStep4() {
+        let sessionData = getData();
+
+        let brand = sessionData.step1?.Brand || "Unknown";
+        let model = sessionData.step1?.Model || "";
+        let year = sessionData.step1?.ProductionYear || 0;
+        let price = sessionData.step3?.BasePricePerDay || 0;
+
+        let addressParts = [];
+        if (sessionData.step2) {
+            const s2 = sessionData.step2;
+            if (s2.Address) addressParts.push(s2.Address);
+            if (s2.Ward) addressParts.push(s2.Ward);
+            if (s2.District) addressParts.push(s2.District);
+            if (s2.Province) addressParts.push(s2.Province);
+        }
+        let address = addressParts.length ? addressParts.join(", ") : "Unknown";
+
+        document.getElementById("carName").textContent = `${brand} ${model} ${year}`;
+        document.getElementById("carPrice").textContent = `${price} VND/day`;
+        document.getElementById("carAddress").textContent = address;
+
+        // Render carousel
+        const images = sessionData.step1?.CarDocuments?.filter(d => ["Front","Back","Left","Right"].includes(d.documentType)) || [];
+        const requiredTypes = ["Front","Back","Left","Right"];
+        const finalImages = [...images];
+        requiredTypes.forEach(type => {
+            if (!finalImages.some(i => i.documentType === type)) {
+                finalImages.push({ documentType:type, filePath:"/images/placeholder.jpg" });
+            }
+        });
+
+        const carouselInner = document.getElementById("carouselImages");
+        const carouselIndicators = document.getElementById("carouselIndicators");
+        carouselInner.innerHTML = "";
+        carouselIndicators.innerHTML = "";
+
+        finalImages.forEach((img,i)=>{
+            carouselInner.innerHTML += `
+                <div class="carousel-item ${i===0?"active":""}">
+                    <img src="${img.filePath}" class="d-block w-100" style="height:300px; object-fit:cover;" />
+                </div>`;
+            carouselIndicators.innerHTML += `
+                <button type="button" data-bs-target="#carImageCarousel" data-bs-slide-to="${i}" class="${i===0?"active":""}" aria-current="${i===0?"true":""}" aria-label="Slide ${i+1}"></button>`;
+        });
+    }
+
+    function loadStep4() {
+        const tpl = document.getElementById("step4-template").innerHTML;
+        const step4Div = document.getElementById("step4");
+        step4Div.innerHTML = tpl;
+
+        // Activate tab Step 4
+        currentStep = 4;
+        initStep4();
+        showAddCarStep(4);
+    }
+</script>

@@ -1,0 +1,61 @@
+﻿@model CarRental.MVC.Models.Wallet.WalletTopUpViewModel
+@{
+    Layout = null; // this is a modal body returned via AJAX
+}
+
+<div class="modal-header">
+    <h5 class="modal-title">Top-up</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="formTopUp" asp-action="TopUp" asp-controller="Wallet" method="post">
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <p>Your current balance is <strong class="text-success">@Model.CurrentBalance.ToString("#,0")</strong>.</p>
+
+        <div class="mb-3">
+            <label class="form-label">Please select the amount to top up</label>
+            <select class="form-select" name="Amount" required>
+                <option value="2000000">2,000,000</option>
+                <option value="5000000">5,000,000</option>
+                <option value="10000000">10,000,000</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Note (optional)</label>
+            <input class="form-control" name="Note" placeholder="Top-up note"/>
+        </div>
+        <input type="hidden" name="CurrentBalance" value="@Model.CurrentBalance"/>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">OK</button>
+    </div>
+</form>
+
+<script>
+    // Submit via AJAX
+    $("#formTopUp").off("submit").on("submit", function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: "@Url.Action("TopUp", "Wallet")",
+            method: "POST",
+            data: $(this).serialize(),
+            success: function (res) {
+                if (res?.ok) {
+                    toastr.success(res.message);
+                    $("#walletModal").modal("hide");
+                    // Reload page (or call an endpoint that returns the new balance & table)
+                    location.reload();
+                } else {
+                    toastr.error(res?.message ?? "Top-up failed");
+                }
+            },
+            error: function (xhr) {
+                toastr.error(xhr.responseText || "Top-up failed");
+            }
+        });
+    });
+</script>

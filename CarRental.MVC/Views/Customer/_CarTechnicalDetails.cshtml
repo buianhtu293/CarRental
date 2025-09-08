@@ -1,0 +1,73 @@
+﻿@model CarRental.Application.DTOs.Car.CarDetailsDto
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <h5 class="mt-4 mb-2">Technical specifications</h5>
+        <ul class="list-unstyled row row-cols-1 row-cols-sm-2 g-2">
+            <li class="col">
+                <i class="fa-solid fa-road me-2"></i>
+                <strong>Mileage:</strong>
+                @(Model.Details.Mileage.HasValue ? Model.Details.Mileage.Value.ToString("N0") + " km" : "N/A")
+            </li>
+            <li class="col">
+                <i class="fa-solid fa-gas-pump me-2"></i>
+                <strong>Fuel consumption:</strong>
+                @(Model.Details.FuelConsumption.HasValue ? Model.Details.FuelConsumption.Value.ToString("0.0") + " L/100km" : "N/A")
+            </li>
+        </ul>
+
+        <strong>Address:</strong>
+        @if (Model.Header.IsBookedByCurrentUser)
+        {
+            @($"{Model.Details.Address}, {Model.Details.Ward}, {Model.Details.District}, {Model.Details.Province}")
+        }
+        else
+        {
+            <span class="text-muted">
+                Note: Full address will be available after you've paid the deposit to rent.
+            </span>
+        }
+
+        <h5 class="mb-2">Description</h5>
+        <div class="border rounded p-3">
+            @if (!string.IsNullOrWhiteSpace(Model.Details.Description))
+            {
+                @Html.Raw(Html.Encode(Model.Details.Description).Replace("\n", "<br/>"))
+            }
+            else
+            {
+                <span class="text-muted fst-italic">No description provided.</span>
+            }
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <h5 class="mb-2">Additional functions</h5>
+        <div class="border rounded p-3">
+            @if (Model.Details.Specifications != null && Model.Details.Specifications.Any())
+            {
+                <div class="d-flex flex-wrap gap-3">
+                    @foreach (var spec in Model.Details.Specifications
+                   .Where(s => s != null && !string.IsNullOrWhiteSpace(s.Name)))
+                    {
+                        <div class="d-flex align-items-center">
+                            @if (spec.Required)
+                            {
+                                <i class="fa-solid fa-square-check me-2 text-success"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-regular fa-square me-2 text-muted"></i>
+                            }
+                            <span>@spec.Name</span>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <span class="text-muted fst-italic">No additional functions provided.</span>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,294 @@
+﻿@model CarRental.MVC.Models.Cart.CartViewModel
+@{
+}
+
+<div class="container py-5">
+	<h1 class="mb-5">Your Booking Cart</h1>
+	<form id="checkoutForm" method="post" asp-action="Index" asp-controller="Booking">
+		<div class="row">
+			<div class="col-lg-8">
+				<!-- Cart Items -->
+				<div class="card mb-4">
+					<div class="card-body">
+						@if (Model.CartDTO?.CartItems == null || !Model.CartDTO.CartItems.Any())
+						{
+							<div class="text-center text-muted py-4">
+								<i class="fa-solid fa-cart-shopping fa-2x mb-2"></i>
+								<p class="mb-0">Nothing in Cart</p>
+							</div>
+						}
+						else
+						{
+							@foreach (var item in Model.CartDTO.CartItems)
+							{
+								<div class="row cart-item mb-3">
+									<div class="col-md-3">
+										<img src="@item.Car.CarDocuments.Where(c => c.DocumentType.Equals("Front")).FirstOrDefault()?.FilePath"
+											 alt="@($"{item.Car.Brand} {item.Car.Model}")"
+											 class="img-fluid rounded" />
+									</div>
+
+									<div class="col-md-5">
+										<h5 class="card-title">@item.Car.Brand @item.Car.Model (@item.Car.ProductionYear)</h5>
+									</div>
+
+									<div class="col-md-3">
+										<p class="fw-bold">
+											@($"{item.PricePerDay:0,0} VND")
+										</p>
+										<small class="text-muted">
+											Deposit: @($"{item.Deposit:0,0} VND")
+										</small>
+										<br />
+									</div>
+
+									<div class="col-md-1">
+										<button type="button" class="btn btn-sm btn-outline-danger" title="Remove"
+												onclick="removeCartItem('@item.ID')">
+											<i class="fa-solid fa-trash"></i>
+										</button>
+									</div>
+								</div>
+								<hr />
+							}
+						}
+					</div>
+				</div>
+
+				<!-- Continue Shopping Button -->
+				<div class="text-start mb-4">
+					<a href="#" class="btn btn-outline-primary">
+						<i class="bi bi-arrow-left me-2"></i>Continue Shopping
+					</a>
+				</div>
+			</div>
+			<div class="col-lg-4">
+
+				<div class="card cart-summary">
+					<div class="card-body">
+						<h5 class="card-title mb-4">Choose Pick-up & Return Date & Hour</h5>
+
+						<div class="mb-3">
+							<label for="pickupDateTime" class="form-label">Pick-up Date & Hour</label>
+							<input type="datetime-local" class="form-control" id="pickupDateTime" name="PickupDate" step="3600" />
+						</div>
+
+						<div class="mb-3">
+							<label for="returnDateTime" class="form-label">Return Date & Hour</label>
+							<input type="datetime-local" class="form-control" id="returnDateTime" name="ReturnDate" step="3600" />
+						</div>
+					</div>
+				</div>
+
+				<!-- Cart Summary -->
+				<div class="card cart-summary">
+					<div class="card-body">
+						<h5 class="card-title mb-4">Order Summary</h5>
+						<div class="d-flex justify-content-between mb-3">
+							<span>Subtotal 1 day</span>
+							<span class="order-subtotal"></span>
+						</div>
+						<div class="d-flex justify-content-between mb-3">
+							<span>Total day</span>
+							<span class="order-days"></span>
+						</div>
+						<hr>
+						<div class="d-flex justify-content-between mb-1">
+							<strong>Total</strong>
+							<strong class="order-total"></strong>
+						</div>
+						<div class="d-flex justify-content-between mb-4">
+							<span>Deposit</span>
+							<span class="order-deposit"></span>
+						</div>
+						<input type="hidden" name="carIds" value="@string.Join(",", Model.CartDTO.CartItems.Select(i => i.Car.ID))" />
+						<input type="hidden" name="isNewSession" value="true" />
+						<button type="submit" class="btn btn-primary w-100">Proceed to Checkout</button>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</form>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+	<div id="cartToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+		<div class="d-flex">
+			<div class="toast-body" id="cartToastMessage"></div>
+			<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+		</div>
+	</div>
+</div>
+
+
+<style>
+	.cart-item img {
+		max-width: 100px;
+		height: auto;
+	}
+
+	.quantity-input {
+		width: 50px;
+	}
+
+	.cart-summary {
+		margin-bottom: 20px;
+		background-color: #f8f9fa;
+		border-radius: 10px;
+	}
+</style>
+
+@section Scripts {
+
+	<script>
+
+		document.addEventListener("DOMContentLoaded", function () {
+			const tomorrow = new Date();
+			tomorrow.setHours(17, 0, 0, 0); // set time to 17:00
+
+			const minDateTime = tomorrow.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+
+			document.getElementById("pickupDateTime").setAttribute("min", minDateTime);
+			document.getElementById("returnDateTime").setAttribute("min", minDateTime);
+		});
+
+		document.addEventListener("DOMContentLoaded", function () {
+			const form = document.getElementById("checkoutForm");
+			const pickupInput = document.getElementById("pickupDateTime");
+			const returnInput = document.getElementById("returnDateTime");
+			const cartItems = document.querySelectorAll(".cart-item");
+			const toastEl = document.getElementById("cartToast");
+			const toastMsg = document.getElementById("cartToastMessage");
+			const toast = new bootstrap.Toast(toastEl);
+
+			form.addEventListener("submit", function (e) {
+				e.preventDefault(); // Stop default navigation first
+
+				// Check empty cart
+				if (cartItems.length === 0) {
+					toastMsg.textContent = "Your cart is empty. Please add a car before checkout.";
+					toast.show();
+					return;
+				}
+
+				// Check missing date/time
+				if (!pickupInput.value || !returnInput.value) {
+					toastMsg.textContent = "Please select both pick-up and return date/time.";
+					toast.show();
+					return;
+				}
+
+				// Check pickup < return
+				const pickupDate = new Date(pickupInput.value);
+				const returnDate = new Date(returnInput.value);
+				if (returnDate <= pickupDate) {
+					toastMsg.textContent = "Return date must be later than pick-up date.";
+					toast.show();
+					return;
+				}
+
+				// If everything is OK → submit form manually
+				form.submit();
+			});
+		});
+
+
+		// calculate
+		$(document).ready(function () {
+
+			function calculateSummary() {
+				let pickup = new Date($("#pickupDateTime").val());
+				let ret = new Date($("#returnDateTime").val());
+
+				// Total days (minimum 1)
+				let totalHours = (ret - pickup) / (1000 * 60 * 60);
+				let totalDays = totalHours / 24;
+				totalDays = Number(totalDays.toFixed(1));
+
+				let subtotalPerDay = 0;
+				let depositTotalPerDay = 0;
+
+				// Loop through cart items and sum price per day + deposit
+				$(".cart-item").each(function () {
+					let priceText = $(this).find(".fw-bold").text().replace(/[^0-9]/g, "");
+					let depositText = $(this).find(".text-muted").text().replace(/[^0-9]/g, "");
+
+					let pricePerDay = parseFloat(priceText) || 0;
+					let depositPerDay = parseFloat(depositText) || 0;
+
+					subtotalPerDay += pricePerDay;
+					depositTotalPerDay += depositPerDay;
+				});
+
+				let subtotal = subtotalPerDay * totalDays;
+				let total = subtotal;
+
+				let depositTotal = depositTotalPerDay;
+
+				// Update DOM
+				$(".order-subtotal").text(subtotalPerDay.toLocaleString() + " VND");
+				$(".order-deposit-1day").text(depositTotalPerDay.toLocaleString() + " VND")
+				if (totalHours > 0) {
+					$(".order-days").text(totalDays + " days");
+					$(".order-total").text(total.toLocaleString() + " VND");
+				} else {
+					$(".order-days").text("Wrong pick-up & return date");
+					$(".order-total").text("0 VND");
+				}
+				
+				$(".order-deposit").text(depositTotal.toLocaleString() + " VND");
+			}
+
+			// Trigger calculation when date/time changes
+			$("#pickupDateTime, #returnDateTime").on("change", calculateSummary);
+
+			// Initial calculation on page load
+			calculateSummary();
+		});
+
+		// validate hour
+		function roundToHour(input) {
+			if (!input.value) return;
+			let date = new Date(input.value);
+
+			// Set minutes and seconds to zero
+			date.setMinutes(0, 0, 0);
+
+			// Format as local YYYY-MM-DDTHH:MM
+			let year = date.getFullYear();
+			let month = String(date.getMonth() + 1).padStart(2, '0');
+			let day = String(date.getDate()).padStart(2, '0');
+			let hours = String(date.getHours()).padStart(2, '0');
+			let minutes = String(date.getMinutes()).padStart(2, '0');
+
+			input.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+		}
+
+		document.getElementById("pickupDateTime").addEventListener("change", function () {
+			roundToHour(this);
+		});
+		document.getElementById("returnDateTime").addEventListener("change", function () {
+			roundToHour(this);
+		});
+
+		// remove item
+		function removeCartItem(itemId) {
+			fetch('/Cart/RemoveCartItem', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+				},
+				body: JSON.stringify({ itemId: itemId })
+			})
+				.then(response => {
+					if (response.ok) {
+						location.reload();
+					}
+				});
+		}
+
+	</script>
+
+}

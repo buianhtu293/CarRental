@@ -1,0 +1,175 @@
+﻿@using CarRental.Application.DTOs;
+@using CarRental.Domain.Models;
+@model PagedResult<CarSearchDto>
+@Html.AntiForgeryToken()
+
+<div class="row row-cols-1 g-3">
+	@foreach (var car in Model.Items)
+	{
+		<div class="col">
+			<div class="card shadow-sm border">
+				<div class="row g-0">
+					<div class="col-md-4 position-relative">
+						<div id="carCarousel-@car.Id" class="carousel slide h-100 position-relative" data-bs-ride="carousel">
+
+							<div class="carousel-inner h-100">
+								@for (int i = 0; i < car.ImageUrls.Count; i++)
+								{
+									var imgUrl = car.ImageUrls[i];
+									<div class="carousel-item @(i == 0 ? "active" : "") h-100">
+										<img src="@imgUrl" class="img-fluid w-100 h-100"
+											 alt="Car Image @(i+1)" style="object-fit: cover; min-height: 200px;">
+									</div>
+								}
+							</div>
+
+							<button class="btn btn-dark btn-sm position-absolute top-50 start-0 translate-middle-y ms-2" style="opacity: 0.7;" type="button" data-bs-target="#carCarousel-@car.Id" data-bs-slide="prev">
+								<i class="fas fa-chevron-left"></i>
+							</button>
+							<button class="btn btn-dark btn-sm position-absolute top-50 end-0 translate-middle-y me-2" style="opacity: 0.7;" type="button" data-bs-target="#carCarousel-@car.Id" data-bs-slide="next">
+								<i class="fas fa-chevron-right"></i>
+							</button>
+
+							<div class="position-absolute bottom-0 start-50 translate-middle-x mb-2">
+								<div class="carousel-indicators mb-0">
+									@for (int i = 0; i < car.ImageUrls.Count; i++)
+									{
+										<button type="button"
+												data-bs-target="#carCarousel-@car.Id"
+												data-bs-slide-to="@i"
+												class="@(i == 0 ? "active" : "")"
+												aria-label="Slide @(i + 1)"></button>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+
+
+
+					<div class="col-md-8">
+						<div class="card-body h-100 d-flex flex-column">
+							<div class="row align-items-start mb-2">
+								<div class="col-8">
+									<h5 class="card-title mb-1">@($"{car.Brand} {car.Model} {car.Year}")</h5>
+								</div>
+								<div class="col-4 text-end">
+									<a href="@Url.Action("Book", "Booking", new { carId = car.Id })" class="btn btn-primary btn-sm">Rent now</a>
+									<a onclick="addToCart('@car.Id')" class="btn btn-secondary btn-sm">Add to cart</a>
+								</div>
+							</div>
+
+							<div class="mb-2">
+								<span class="text-muted small">Ratings:</span>
+								<span class="rating-stars">
+									@if (car.HasRatings)
+									{
+										<!-- Full Stars -->
+										@for (int i = 0; i < car.FullStars; i++)
+										{
+											<i class="fas fa-star text-warning"></i>
+										}
+
+										<!-- Half Star -->
+										@if (car.HasHalfStar)
+										{
+											<i class="fas fa-star-half-alt text-warning"></i>
+										}
+
+										<!-- Empty Stars -->
+										@for (int i = 0; i < car.EmptyStars; i++)
+										{
+											<i class="far fa-star text-warning"></i>
+										}
+
+										<span class="text-muted small ms-1">(@car.FormattedAverageRating - @car.TotalReviews reviews)</span>
+									}
+									else
+									{
+										@for (int i = 0; i < 5; i++)
+										{
+											<i class="far fa-star text-muted"></i>
+										}
+										<span class="text-muted small ms-1">(No ratings yet)</span>
+									}
+								</span>
+							</div>
+
+							<!-- Rides Count -->
+							<div class="mb-2">
+								<span class="text-muted small">No. of rides:</span>
+								<span class="fw-bold">@car.NumberOfRides</span>
+							</div>
+
+							<!-- Price -->
+							<div class="mb-2">
+								<span class="text-muted small">Price:</span>
+								<span class="fw-bold text-dark">@(car.BasePricePerDay?.ToString("N0") ?? "0")k/day</span>
+							</div>
+
+							<!-- Location -->
+							<div class="mb-2">
+								<span class="text-muted small">Locations:</span>
+								<span class="text-dark">@car.District, @car.Province</span>
+							</div>
+
+							<!-- Status and View Details -->
+							<div class="row align-items-center mt-auto">
+								<div class="col-6">
+									<span class="text-muted small">Status:</span>
+									<span class="badge bg-success">@car.Status</span>
+								</div>
+								<div class="col-6 text-end">
+									<a href="@Url.Action("ViewDetails", "Customer", new { id = car.Id })" class="btn btn-outline-primary btn-sm">View details</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+</div>
+
+<style>
+	.carousel-indicators [data-bs-target] {
+		background-color: #fff;
+		opacity: 0.7;
+	}
+
+	.carousel-indicators .active {
+		background-color: #ff6600;
+		opacity: 1;
+	}
+
+	.card {
+		transition: box-shadow 0.3s ease;
+	}
+
+		.card:hover {
+			box-shadow: 0 4px 8px rgba(0,0,0,0.12) !important;
+		}
+
+	.btn-sm {
+		font-size: 0.875rem;
+		padding: 0.375rem 0.75rem;
+	}
+
+	.text-warning i {
+		font-size: 0.9rem;
+	}
+
+	.position-relative .btn {
+		border-radius: 50%;
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+		.position-relative .btn:hover {
+			opacity: 1 !important;
+		}
+</style>

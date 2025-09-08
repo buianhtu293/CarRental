@@ -1,0 +1,295 @@
+﻿@model CarRental.MVC.Models.Wallet.WalletIndexViewModel
+@{
+    ViewData["Title"] = "My Wallet";
+    Layout = "_Layout";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="container py-5">
+    <!-- Breadcrumb navigation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">My Wallet</li>
+        </ol>
+    </nav>
+
+    <!-- Page heading -->
+    <h2 class="mb-4">My Wallet</h2>
+
+    <!-- Current balance and actions -->
+    <div class="row align-items-center mb-3">
+        <div class="col-md-6">
+            <div class="fw-semibold">Your current balance:</div>
+            <div class="display-6 text-success">@Model.CurrentBalance.ToString("N0") VND</div>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <!-- Action buttons -->
+            <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#withdrawModal">
+                Withdraw
+            </button>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#topUpModal">
+                Top-up
+            </button>
+        </div>
+    </div>
+
+    <!-- Date range filter form -->
+    <form id="wallet-filter" class="row g-2 align-items-end mb-3">
+        <div class="col-sm-4">
+            <label class="form-label" for="fromDate">From</label>
+            <input id="fromDate" name="fromDate" type="date" class="form-control"
+                   value="@(Model.FromDate?.ToString("yyyy-MM-dd"))"/>
+        </div>
+        <div class="col-sm-4">
+            <label class="form-label" for="toDate">To</label>
+            <input id="toDate" name="toDate" type="date" class="form-control"
+                   value="@(Model.ToDate?.ToString("yyyy-MM-dd"))"/>
+        </div>
+        <div class="col-sm-4">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    @{
+        var transactionTask = Html.PartialAsync("_WalletTransactions", Model.Transactions, new ViewDataDictionary(ViewData)
+        {
+            { "Paging", Model.Paging }
+        });
+    }
+
+    <!-- Transactions table container -->
+    <div id="wallet-transactions">
+        @await transactionTask
+    </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="withdrawModalLabel">Withdraw</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Your current balance is <strong>@Model.CurrentBalance.ToString("N0")</strong>. Please select the
+                    amount to withdraw from your wallet.</p>
+                <select id="withdrawAmount" class="form-select">
+                    <option value="2000000">2,000,000</option>
+                    <option value="5000000">5,000,000</option>
+                    <option value="10000000">10,000,000</option>
+                    <option value="@Model.CurrentBalance">All balance</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmWithdraw" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top-up Modal -->
+<div class="modal fade" id="topUpModal" tabindex="-1" aria-labelledby="topUpModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="topUpModalLabel">Top-up</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please select the amount to top up to your wallet.</p>
+                <select id="topUpAmount" class="form-select">
+                    <option value="2000000">2,000,000</option>
+                    <option value="5000000">5,000,000</option>
+                    <option value="10000000">10,000,000</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmTopUp" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const token = $('input[name="__RequestVerificationToken"]').val();
+        
+        function validateTransactionDateRange(callback) {
+            const to = $('#toDate').val();
+            const from = $('#fromDate').val();
+            if (!to || !from || (new Date(to).getTime() < new Date(from).getTime())) {
+                toastr.warning("The end date must be later than the start date in order to search for transactions. Please try again.");
+            } else {
+                callback();
+            }
+        }
+
+        // Handles date filter submission via AJAX
+        $(document).on("submit", "#wallet-filter", function (e) {
+            e.preventDefault();
+
+            const $transactionsContainer = $("#wallet-transactions");
+            $transactionsContainer.addClass("loading").append("<div class='overlay-spinner'><div class='spinner-border text-primary' role='status'></div></div>");
+
+            $.ajax({
+                url: "@Url.Action("TransactionsPartial", "Wallet")",
+                type: "GET",
+                data: $(this).serialize(),
+                success: function (html) {
+                    $transactionsContainer.html(html);
+                    toastr.success("Transactions filtered successfully.", "Success");
+                },
+                error: function () {
+                    validateTransactionDateRange(_ => toastr.error('Failed to load transactions. Please try again.', 'Error'));
+                },
+                complete: function () {
+                    $transactionsContainer.removeClass("loading");
+                    $transactionsContainer.find(".overlay-spinner").remove();
+                }
+            });
+        });
+
+        // Handles pagination link clicks (AJAX load)
+        $(document).on("click", "#wallet-transactions .pagination a.page-link", function (e) {
+            e.preventDefault();
+
+            // Extract URL parts to construct a TransactionsPartial URL instead
+            const url = $(this).attr("href").replace("/Wallet/Index", "/Wallet/TransactionsPartial");
+            const $transactionsContainer = $("#wallet-transactions");
+
+            // Add loading state
+            $transactionsContainer.addClass("loading").append("<div class='overlay-spinner'><div class='spinner-border text-primary' role='status'></div></div>");
+
+            $.ajax({
+                url: url,
+                type: "GET",
+                success: function (html) {
+                    $transactionsContainer.html(html);
+                },
+                error: function () {
+                    validateTransactionDateRange(_ => toastr.error('Failed to load transactions from the pagination. Please try again.', 'Error'));
+                },
+                complete: function () {
+                    $transactionsContainer.removeClass("loading");
+                    $transactionsContainer.find(".overlay-spinner").remove();
+
+                    // Scroll back to top of transactions table for better UX
+                    $('html, body').animate({
+                        scrollTop: $transactionsContainer.offset().top - 20
+                    }, 200);
+                }
+            });
+        });
+
+        /**
+         * Handles the notification with a countdown and automatic page reload.
+         *
+         * param {Object} notification - The toastr notification object returned from toastr.success().
+         * param {actionName} - the name of the action e.g. Withdrawal
+         * param {number} seconds - The number of seconds before the page reloads.
+         * returns {Promise<void>}
+         */
+        async function handleCountdown(notification, actionName, seconds) {
+            // Ensure the countdown starts immediately with the correct message
+            for (let remaining = seconds; remaining >= 0; remaining--) {
+                notification.find('.toast-message')
+                    .text(`${actionName} successful. Reloading in ${remaining}...`);
+
+                // Wait 1 second before next iteration, except after final iteration
+                if (remaining > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            // Perform page reload after countdown ends
+            location.reload();
+        }
+
+        /**
+         * Handles wallet withdrawal functionality
+         * Makes an AJAX POST request to withdraw funds from user's wallet
+         */
+        $("#confirmWithdraw").click(function () {
+            const amount = $("#withdrawAmount").val();
+
+            $.ajax({
+                url: "@Url.Action("Withdraw", "Wallet")",
+                type: "POST",
+                data: {amount: amount, __RequestVerificationToken: token},
+                beforeSend: function () {
+                    $("#confirmWithdraw").prop("disabled", true);
+                },
+                success: function (response) {
+                    const countdownSeconds = 3;
+
+                    // Display toastr notification and handle countdown in onShown
+                    const notification = toastr.success(
+                        `Withdrawal successful. Reloading in ${countdownSeconds}...`,
+                        "",
+                        {
+                            /**
+                             * Triggered when the toastr notification is fully shown.
+                             * Executes an async countdown before reloading the page.
+                             */
+                            onShown: function () {
+                                handleCountdown(notification, "Withdrawal", countdownSeconds);
+                            }
+                        }
+                    );
+                },
+                error: function (xhr, status, error) {
+                    toastr.error("Withdrawal failed.");
+                },
+                complete: function () {
+                    $("#confirmWithdraw").prop("disabled", false);
+                }
+            });
+        });
+
+        /**
+         * Handles wallet top-up functionality
+         * Makes an AJAX POST request to add funds to user's wallet
+         */
+        $("#confirmTopUp").click(function () {
+            const amount = $("#topUpAmount").val();
+
+            $.ajax({
+                url: "@Url.Action("TopUp", "Wallet")",
+                type: "POST",
+                data: {amount: amount, __RequestVerificationToken: token},
+                beforeSend: function () {
+                    $("#confirmTopUp").prop("disabled", true);
+                },
+                success: function (response) {
+                    const countdownSeconds = 3;
+
+                    // Display toastr notification and handle countdown in onShown
+                    const notification = toastr.success(
+                        `Top-up successful. Reloading in ${countdownSeconds}...`,
+                        "",
+                        {
+                            /**
+                             * Triggered when the toastr notification is fully shown.
+                             * Executes an async countdown before reloading the page.
+                             */
+                            onShown: function () {
+                                handleCountdown(notification, "Top-up", countdownSeconds);
+                            }
+                        }
+                    );
+                },
+                error: function (xhr, status, error) {
+                    toastr.error("Top-up failed.");
+                },
+                complete: function () {
+                    $("#confirmTopUp").prop("disabled", false);
+                }
+            });
+        });
+    </script>
+}

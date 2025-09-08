@@ -1,0 +1,397 @@
+﻿@using CarRental.Application.DTOs
+@model EditCarDto;
+
+<form id="editDetailsForm" method="post" enctype="multipart/form-data">
+<div class="container-fluid">
+    <div class="container">
+        <div class="row">
+            <input type="hidden" asp-for="@Model.Id" />
+
+            <!-- Mileage -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Mileage: <span class="text-danger">*</span></label>
+                <input type="number" asp-for="@Model.Mileage" class="form-control" min="0" max="10000" />
+                <span class="error text-danger" id="error-Mileage"></span>
+            </div>
+
+            <!-- Fuel consumption -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fuel consumption: </label>
+                <input type="number" asp-for="@Model.FuelConsumption" class="form-control" min="0" max="10000" /> &nbsp; liter/100km
+                <span class="error text-danger" id="error-FuelConsumption"></span>
+            </div>
+
+                <!-- Address -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Address: <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control mb-2" placeholder="Search for an address" />
+
+                    <select class="form-select mb-2" asp-for="Province" name="Province"></select>
+                    <select class="form-select mb-2" asp-for="District" name="District"></select>
+                    <select class="form-select mb-2" asp-for="Ward" name="Ward"></select>
+
+                    <input type="text" asp-for="Address" class="form-control mt-2" placeholder="House number, Street" />
+                </div>
+
+            <!-- Description -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Description: </label> <br />
+                    <textarea class="form-control" asp-for="@Model.Description" name="Description" rows="5" placeholder="Description of your vehicle"></textarea>
+                <span class="error text-danger" id="error-Description"></span>
+            </div>
+        </div>
+
+        <!-- Additional functions -->
+            @{
+                var allSpecs = new[] { "Bluetooth", "GPS", "Camera", "Sunroof", "ChildLock", "ChildSeat", "DVD", "USB" };
+                var specDict = Model.CarSpecifications.ToDictionary(s => s.Name, s => s);
+
+                int total = allSpecs.Length;
+                int perCol = (int)Math.Ceiling(total / 3.0);
+                var grouped = allSpecs.Select((val, idx) => new { val, idx })
+                .GroupBy(x => x.idx / perCol)
+                .ToList();
+            }
+
+            <div class="col-12">
+                <label><strong>Additional functions:</strong></label>
+                <div class="row">
+                    @foreach (var group in grouped)
+                    {
+                        <div class="col-md-3 bg-light p-3 m-2">
+                            @foreach (var item in group)
+                            {
+                                var specName = item.val;
+                                int idx = item.idx;
+                                var spec = specDict.ContainsKey(specName) ? specDict[specName] : null;
+                                var specId = spec?.Id ?? Guid.Empty;
+                                var isChecked = spec?.Required ?? false;
+
+                                <div class="form-check">
+                                    <!-- Hidden giữ Id + Name -->
+                                    <input type="hidden" name="CarSpecifications[@idx].Id" value="@specId" />
+                                    <input type="hidden" name="CarSpecifications[@idx].Name" value="@specName" />
+
+                                    <!-- Checkbox Required -->
+                                    <input type="checkbox"
+                                           name="CarSpecifications[@idx].Required"
+                                           value="true"
+                                           class="form-check-input"
+                                           id="spec-@idx"
+                                           @(isChecked ? "checked" : "") />
+
+                                    <label class="form-check-label" for="spec-@idx">@specName</label>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+        <!-- Images -->
+        <label class="form-label">Images: <span class="text-danger">*</span></label>
+            @{
+                var types = new[] { "Front", "Back", "Left", "Right" };
+            }
+
+            <div class="container my-3">
+                <div class="row g-3">
+                    @for (int i = 0; i < types.Length; i++)
+                    {
+                        var type = types[i];
+                        var doc = Model.CarDocuments?.FirstOrDefault(d => d.DocumentType == type)
+                        ?? new CarDocumentDto { DocumentType = type };
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">@type</label>
+                            <div class="border position-relative d-flex align-items-center justify-content-center upload-box"
+                                 style="@(string.IsNullOrEmpty(doc.FilePath) ? "" : $"background-image:url('{doc.FilePath}');")">
+
+                                <!-- giữ Id + DocumentType -->
+                                <input type="hidden" name="CarDocuments[@i].Id" value="@doc.Id" />
+                                <input type="hidden" name="CarDocuments[@i].DocumentType" value="@type" />
+                                <input type="hidden" name="CarDocuments[@i].FilePath" value="@doc.FilePath" />
+
+                                <!-- file input -->
+                                <input type="file"
+                                       class="d-none"
+                                       id="@($"docFile{i}")"
+                                       name="CarDocuments[@i].File" />
+
+                                <!-- label chọn file -->
+                                <label for="@($"docFile{i}")"
+                                       class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted"
+                                       style="@(string.IsNullOrEmpty(doc.FilePath) ? "" : "display:none;")">
+                                    Drag and drop <br /> OR <br />
+                                    <span class="text-primary">Select file</span>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <p class="mt-2 small text-muted">
+                    Please include full 4 images of your vehicle<br />
+                    File type: jpg, jpeg, png, gif
+                </p>
+            </div>
+
+        <!-- buttons -->
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-danger" onclick="discardStep2()">Discard</button>
+            <button type="button" class="btn btn-primary" onclick="saveStep2()">Save</button>
+        </div>
+    </div>
+</div>
+</form>
+
+<style>
+    .upload-box {
+        height: 180px;
+        border: 2px dashed #ccc !important;
+        border-radius: 8px;
+        cursor: pointer;
+        background-size: cover;
+        background-position: center;
+    }
+
+        .upload-box.dragover {
+            border-color: #007bff !important;
+            background-color: #f8f9fa;
+        }
+</style>
+
+<script>
+    // drag & drop + preview
+    document.querySelectorAll(".upload-box").forEach(box => {
+        box.addEventListener("dragover", e => {
+            e.preventDefault();
+            box.classList.add("dragover");
+        });
+        box.addEventListener("dragleave", () => box.classList.remove("dragover"));
+        box.addEventListener("drop", e => {
+            e.preventDefault();
+            box.classList.remove("dragover");
+            const input = box.querySelector("input[type='file']");
+            input.files = e.dataTransfer.files;
+            previewFile(input, box);
+        });
+
+        const input = box.querySelector("input[type='file']");
+        input.addEventListener("change", e => previewFile(input, box));
+    });
+
+    function previewFile(input, box) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                box.style.backgroundImage = `url('${ev.target.result}')`;
+                box.querySelector("label").style.display = "none";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function validateForm() {
+        let isValid = true;
+
+        // clear lỗi cũ
+        document.querySelectorAll(".error").forEach(e => e.textContent = "");
+
+        // Mileage (required + range)
+        const mileageInput = document.querySelector("[name='Mileage']");
+        const mileageVal = parseInt(mileageInput.value || "0");
+        if (!mileageInput.value) {
+            document.getElementById("error-Mileage").textContent = "Mileage is required.";
+            isValid = false;
+        } else if (mileageVal < 0 || mileageVal > 10000) {
+            document.getElementById("error-Mileage").textContent = "Mileage must be between 0 and 10000.";
+            isValid = false;
+        }
+
+        // Fuel consumption (optional + range)
+        const fuelInput = document.querySelector("[name='FuelConsumption']");
+        if (fuelInput.value) {
+            const fuelVal = parseInt(fuelInput.value);
+            if (fuelVal < 0 || fuelVal > 10000) {
+                document.getElementById("error-FuelConsumption").textContent = "Fuel consumption must be between 0 and 10000.";
+                isValid = false;
+            }
+        }
+
+        // Address required
+        const province = document.querySelector("[name='Province']").value;
+        const district = document.querySelector("[name='District']").value;
+        const ward = document.querySelector("[name='Ward']").value;
+        const address = document.querySelector("[name='Address']").value;
+
+        if (!province || !district || !ward || !address) {
+            toastr.error("Please fill in full address (Province, District, Ward, Street/House No).");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // Address (Province → District → Ward)
+    document.addEventListener("DOMContentLoaded", function () {
+        const provinceSelect = document.querySelector('select[name="Province"]');
+    const districtSelect = document.querySelector('select[name="District"]');
+    const wardSelect = document.querySelector('select[name="Ward"]');
+
+    const provinceNameDb = "@Html.Raw(Model.Province ?? "")";
+    const districtNameDb = "@Html.Raw(Model.District ?? "")";
+    const wardNameDb = "@Html.Raw(Model.Ward ?? "")";
+
+
+    let provincesCache = [];
+    let districtsCache = [];
+
+    // Load provinces
+    fetch('https://open.oapi.vn/location/provinces?page=0&size=63')
+        .then(res => res.json())
+        .then(data => {
+            provincesCache = data.data; // Lưu danh sách tỉnh
+            provinceSelect.innerHTML = '<option value="">City/Province</option>';
+            let selectedProvinceId = null;
+
+            provincesCache.forEach(province => {
+                const option = document.createElement('option');
+                option.value = province.name;   // Lưu NAME, không phải ID
+                option.textContent = province.name;
+
+                if (province.name === provinceNameDb) {
+                    option.selected = true;
+                    selectedProvinceId = province.id; // vẫn giữ ID để load District
+                }
+                provinceSelect.appendChild(option);
+            });
+
+            if (selectedProvinceId) {
+                loadDistricts(selectedProvinceId, districtNameDb, wardNameDb);
+            }
+        });
+
+    function loadDistricts(provinceId, districtNameDb, wardNameDb) {
+        fetch(`https://open.oapi.vn/location/districts/${provinceId}`)
+            .then(res => res.json())
+            .then(data => {
+                districtsCache = data.data; // Lưu danh sách huyện
+                districtSelect.innerHTML = '<option value="">District</option>';
+                let selectedDistrictId = null;
+
+                districtsCache.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.name;  // Lưu NAME
+                    option.textContent = district.name;
+
+                    if (district.name === districtNameDb) {
+                        option.selected = true;
+                        selectedDistrictId = district.id;
+                    }
+                    districtSelect.appendChild(option);
+                });
+
+                if (selectedDistrictId) {
+                    loadWards(selectedDistrictId, wardNameDb);
+                }
+            });
+    }
+
+    function loadWards(districtId, wardNameDb) {
+        fetch(`https://open.oapi.vn/location/wards/${districtId}`)
+            .then(res => res.json())
+            .then(data => {
+                wardSelect.innerHTML = '<option value="">Ward</option>';
+
+                data.data.forEach(ward => {
+                    const option = document.createElement('option');
+                    option.value = ward.name;   // ✅ Lưu NAME
+                    option.textContent = ward.name;
+
+                    if (ward.name === wardNameDb) {
+                        option.selected = true;
+                    }
+                    wardSelect.appendChild(option);
+                });
+            });
+    }
+
+    // Khi đổi province
+    provinceSelect.addEventListener("change", function () {
+        const selectedProvince = provincesCache.find(p => p.name === this.value);
+        if (selectedProvince) {
+            loadDistricts(selectedProvince.id, "", "");
+        } else {
+            districtSelect.innerHTML = '<option value="">District</option>';
+            wardSelect.innerHTML = '<option value="">Ward</option>';
+        }
+    });
+
+    // Khi đổi district
+    districtSelect.addEventListener("change", function () {
+        const selectedDistrict = districtsCache.find(d => d.name === this.value);
+        if (selectedDistrict) {
+            loadWards(selectedDistrict.id, "");
+        } else {
+            wardSelect.innerHTML = '<option value="">Ward</option>';
+        }
+    });
+
+    // Save snapshot form ban đầu để Discard
+    const form = document.getElementById("editDetailsForm");
+    if (form) {
+        window.initialFormData = new FormData(form);
+    }
+    });
+
+    function saveStep2() {
+        const form = document.getElementById("editDetailsForm");
+
+        if (!validateForm()) {
+            return; // dừng nếu chưa hợp lệ
+        }
+
+        const formData = new FormData(form);
+
+        fetch('@Url.Action("EditDetails", "Car")', {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                toastr.success("Car details updated!");
+                // update snapshot để Discard lần sau trả về đúng giá trị mới
+                initialFormData = new FormData(form);
+            } else {
+                toastr.error("Failed to update car details.");
+            }
+        })
+        .catch(() => toastr.error("Error occurred while saving."));
+    }
+
+        function discardStep2() {
+        const form = document.getElementById("editDetailsForm");
+
+        // clear trước
+        form.reset();
+
+        // điền lại từ initialFormData
+        for (let [key, value] of initialFormData.entries()) {
+            const field = form.elements[key];
+            if (!field) continue;
+
+            if (field.type === "checkbox" || field.type === "radio") {
+                field.checked = (value === "on" || field.value === value);
+            } else if (field.type === "file") {
+                // file input không set được bằng JS → giữ nguyên (nếu cần thì reset bằng clear)
+                continue;
+            } else {
+                field.value = value;
+            }
+        }
+
+        toastr.info("Form reset to original values.");
+    }
+</script>

@@ -1,0 +1,567 @@
+@using CarRental.MVC.Models.Booking
+@model BookingEditViewModel
+
+@{
+    ViewData["Title"] = $"Edit Booking - {Model.BookingNumber}";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <h1 class="display-4 text-center mb-4 text-primary">Edit Booking</h1>
+        <p class="text-center text-muted mb-4">Booking Number: <strong>@Model.BookingNumber</strong></p>
+
+        <!-- Progress Bar -->
+        <div class="booking-progress-container mb-4">
+            <div class="progress-wrapper">
+                <div class="progress-steps">
+                    <div class="progress-step active" data-step="1">
+                        <div class="step-circle"><span>1</span></div>
+                        <div class="step-label">Edit Information</div>
+                    </div>
+                    <div class="progress-line"></div>
+                    <div class="progress-step" data-step="2">
+                        <div class="step-circle"><span>2</span></div>
+                        <div class="step-label">Review & Confirm</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert for edit mode -->
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Edit Mode:</strong> You are editing an existing booking. Rental dates cannot be changed. Only renter information can be updated.
+        </div>
+
+        <!-- Step 1: Information -->
+        <div id="step-1" class="booking-step">
+            <div class="step-header">
+                <h2><i class="fas fa-edit mr-2"></i>Edit Booking Information</h2>
+                <p class="mb-0">Update your personal information. Rental dates cannot be changed.</p>
+            </div>
+
+            <form id="edit-information-form" method="post" enctype="multipart/form-data" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="BookingItemId" value="@Model.Id" />
+                
+                <!-- Date Selection Card (Read Only) -->
+                <div class="form-card card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-calendar mr-2"></i>Rental Period (Cannot be changed)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="PickupDate" class="form-label">Pickup Date</label>
+                                    <input type="datetime-local" id="PickupDate" name="Information.PickupDate" 
+                                           value="@Model.Information.PickupDate.ToString("yyyy-MM-ddTHH:mm")"
+                                           class="form-control rental-date-disabled" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="ReturnDate" class="form-label">Return Date</label>
+                                    <input type="datetime-local" id="ReturnDate" name="Information.ReturnDate" 
+                                           value="@Model.Information.ReturnDate.ToString("yyyy-MM-ddTHH:mm")"
+                                           class="form-control rental-date-disabled" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Rental Duration:</strong> <span id="rental-duration">@Model.NumberOfDays day(s)</span>
+                        </div>
+                        <div class="date-disabled-message">
+                            <i class="fas fa-lock mr-2"></i>
+                            <strong>Note:</strong> Pickup and return dates cannot be changed in edit mode.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Car Information Card (Read Only) -->
+                <div class="form-card card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-car mr-2"></i>Selected Car (Cannot be changed)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="car-item border rounded p-3 mb-3 bg-light">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <img src="@Model.CarInfo.ImageUrl" alt="@Model.CarInfo.Name" 
+                                         class="img-fluid rounded" style="height: 80px; object-fit: cover;">
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">@Model.CarInfo.Name</h6>
+                                    <p class="text-muted mb-1">@Model.CarInfo.LicensePlate</p>
+                                    <small class="text-muted">@Model.CarInfo.Location</small>
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            @if (Model.CarInfo.Seats.HasValue)
+                                            {
+                                                <span class="mr-2"><i class="fas fa-users mr-1"></i> @Model.CarInfo.Seats seats</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(Model.CarInfo.Transmission))
+                                            {
+                                                <span class="mr-2"><i class="fas fa-cogs mr-1"></i> @Model.CarInfo.Transmission</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(Model.CarInfo.FuelType))
+                                            {
+                                                <span><i class="fas fa-gas-pump mr-1"></i> @Model.CarInfo.FuelType</span>
+                                            }
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-right">
+                                    <div class="font-weight-bold text-primary" data-price="@Model.CarInfo.PricePerDay">@Model.CarInfo.PricePerDay.ToString("N0") VND/day</div>
+                                    <p class="text-muted mb-1">Deposit: @Model.CarInfo.RequiredDeposit.ToString("N0") VND</p>
+                                    <p class="text-muted mb-1">SubTotal: <span class="car-subtotal">@Model.TotalAmount.ToString("N0")</span> VND</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Renter Information Card -->
+                <div class="form-card card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-user mr-2"></i>Renter Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="RenterFullName" class="form-label">Full Name</label>
+                                    <input type="text" id="RenterFullName" name="Information.Renter.FullName" 
+                                           value="@Model.Information.Renter.FullName" 
+                                           class="form-control" required placeholder="Enter your full name">
+                                    <div class="invalid-feedback">Please enter your full name</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="RenterEmail" class="form-label">Email Address</label>
+                                    <input type="email" id="RenterEmail" name="Information.Renter.Email" 
+                                           value="@Model.Information.Renter.Email" 
+                                           class="form-control" required placeholder="Enter your email">
+                                    <div class="invalid-feedback">Please enter a valid email address</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="RenterPhone" class="form-label">Phone Number</label>
+                                    <input type="tel" id="RenterPhone" name="Information.Renter.PhoneNumber" 
+                                           value="@Model.Information.Renter.PhoneNumber" 
+                                           class="form-control" required placeholder="Enter your phone number">
+                                    <div class="invalid-feedback">Please enter your phone number</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="RenterDateOfBirth" class="form-label">Date of Birth</label>
+                                    <input type="date" id="RenterDateOfBirth" name="Information.Renter.DateOfBirth" 
+                                           value="@Model.Information.Renter.DateOfBirth.ToString("yyyy-MM-dd")" 
+                                           class="form-control" required max="@DateTime.Today.AddYears(-18).ToString("yyyy-MM-dd")">
+                                    <div class="invalid-feedback">You must be at least 18 years old</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="RenterLicense" class="form-label">Driver License Number</label>
+                                    <input type="text" id="RenterLicense" name="Information.Renter.LicenseNumber" 
+                                           value="@Model.Information.Renter.LicenseNumber" 
+                                           class="form-control" required placeholder="Enter your license number">
+                                    <div class="invalid-feedback">Please enter your driver license number</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="RenterLicenseImage" class="form-label">Driver License Image</label>
+                                    <div class="license-upload-container">
+                                        <input type="file" id="RenterLicenseImage" name="Information.Renter.LicenseImageFile" 
+                                               class="form-control renter-license-upload" accept="image/*">
+                                        <small class="form-text text-muted">Upload image of your driver license (Max 5MB)</small>
+                                        @if (!string.IsNullOrEmpty(Model.Information.Renter.LicenseImage))
+                                        {
+                                            <div class="license-preview mt-2" id="renter-license-preview">
+                                                <img src="@Model.Information.Renter.LicenseImage" alt="License" class="img-thumbnail" style="max-width: 200px;">
+                                                <button type="button" class="btn btn-sm btn-danger ml-2 remove-renter-license">
+                                                    <i class="fas fa-trash"></i> Remove
+                                                </button>
+                                            </div>
+                                        }
+                                        <input type="hidden" name="Information.Renter.LicenseImage" value="@Model.Information.Renter.LicenseImage" id="renter-license-url">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="RenterCity" class="form-label">City</label>
+                                <select id="RenterCity" name="Information.Renter.City" class="form-control" 
+                                        data-selected-city="@Model.Information.Renter.City">
+                                    <option value="">-- Select City --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="RenterDistrict" class="form-label">District</label>
+                                <select id="RenterDistrict" name="Information.Renter.District" class="form-control"
+                                        data-selected-district="@Model.Information.Renter.District">
+                                    <option value="">-- Select District --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="RenterWard" class="form-label">Ward</label>
+                                <select id="RenterWard" name="Information.Renter.Ward" class="form-control"
+                                        data-selected-ward="@Model.Information.Renter.Ward">
+                                    <option value="">-- Select Ward --</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="RenterAddress" class="form-label">Address</label>
+                                    <input type="text" id="RenterAddress" name="Information.Renter.Address" 
+                                           value="@Model.Information.Renter.Address" 
+                                           class="form-control" placeholder="Enter your address">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver Information Section -->
+                @if (Model.Information.Drivers?.Any() == true)
+                {
+                    <div class="form-card card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="fas fa-users mr-2"></i>Driver Information</h5>
+                            <small class="text-muted">Information about authorized drivers for this booking</small>
+                        </div>
+                        <div class="card-body">
+                            @for (int i = 0; i < Model.Information.Drivers.Count; i++)
+                            {
+                                var driver = Model.Information.Drivers[i];
+                                <div class="driver-card card mb-3">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Driver @(i + 1)</h6>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input same-as-renter" 
+                                                       id="SameAsRenter_@i" data-driver-index="@i"
+                                                       @(driver.IsSameAsRenter ? "checked" : "")>
+                                                <label class="form-check-label" for="SameAsRenter_@i">
+                                                    Same as renter
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-body driver-details @(driver.IsSameAsRenter ? "d-none" : "")" id="driver-details-@i">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Driver Full Name</label>
+                                                    <input type="text" name="Information.Drivers[@i].FullName" 
+                                                           value="@driver.FullName" class="form-control" 
+                                                           placeholder="Enter driver full name" required>
+                                                    <div class="invalid-feedback">Please enter driver full name</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Email Address</label>
+                                                    <input type="email" name="Information.Drivers[@i].Email" 
+                                                           value="@driver.Email" class="form-control" 
+                                                           placeholder="Enter driver email" required>
+                                                    <div class="invalid-feedback">Please enter a valid email address</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Phone Number</label>
+                                                    <input type="tel" name="Information.Drivers[@i].PhoneNumber" 
+                                                           value="@driver.PhoneNumber" class="form-control" 
+                                                           placeholder="Enter driver phone number" required>
+                                                    <div class="invalid-feedback">Please enter driver phone number</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Date of Birth</label>
+                                                    <input type="date" name="Information.Drivers[@i].DateOfBirth" 
+                                                           value="@driver.DateOfBirth.ToString("yyyy-MM-dd")" class="form-control" 
+                                                           max="@DateTime.Today.AddYears(-18).ToString("yyyy-MM-dd")" required>
+                                                    <div class="invalid-feedback">Driver must be at least 18 years old</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Driver License Number</label>
+                                                    <input type="text" name="Information.Drivers[@i].LicenseNumber" 
+                                                           value="@driver.LicenseNumber" class="form-control" 
+                                                           placeholder="Enter license number" required>
+                                                    <div class="invalid-feedback">Driver license number is required</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Driver License Image</label>
+                                                    <div class="license-upload-container">
+                                                        <input type="file" id="DriverLicenseImage_@i" name="Information.Drivers[@i].LicenseImageFile" 
+                                                               class="form-control license-upload" data-driver-index="@i" accept="image/*">
+                                                        <input type="hidden" id="license-url-@i" name="Information.Drivers[@i].LicenseImage" 
+                                                               value="@driver.LicenseImage" />
+                                                        <div class="upload-progress mt-2" id="upload-progress-@i" style="display: none;">
+                                                            <div class="progress">
+                                                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                                            </div>
+                                                        </div>
+                                                        @if (!string.IsNullOrEmpty(driver.LicenseImage))
+                                                        {
+                                                            <div class="license-preview mt-2" id="license-preview-@i">
+                                                                <img src="@driver.LicenseImage" alt="License" class="img-thumbnail" style="max-width: 200px;">
+                                                                <button type="button" class="btn btn-sm btn-danger ml-2 remove-license" data-driver-index="@i">
+                                                                    <i class="fas fa-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <div class="invalid-feedback">Driver license image is required</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label class="form-label">Address</label>
+                                                    <input type="text" name="Information.Drivers[@i].Address" 
+                                                           value="@driver.Address" class="form-control" 
+                                                           placeholder="Enter complete address" required>
+                                                    <div class="invalid-feedback">Please enter driver address</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label for="DriverCity_@i" class="form-label">City</label>
+                                                <select id="DriverCity_@i" name="Information.Drivers[@i].City" class="form-control driver-city" 
+                                                        data-driver-index="@i" data-selected-city="@driver.City" required>
+                                                    <option value="">-- Select City --</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select city</div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="DriverDistrict_@i" class="form-label">District</label>
+                                                <select id="DriverDistrict_@i" name="Information.Drivers[@i].District" class="form-control driver-district" 
+                                                        data-driver-index="@i" data-selected-district="@driver.District" required>
+                                                    <option value="">-- Select District --</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select district</div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="DriverWard_@i" class="form-label">Ward</label>
+                                                <select id="DriverWard_@i" name="Information.Drivers[@i].Ward" class="form-control driver-ward" 
+                                                        data-driver-index="@i" data-selected-ward="@driver.Ward" required>
+                                                    <option value="">-- Select Ward --</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select ward</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Hidden fields for data binding -->
+                                        <input type="hidden" name="Information.Drivers[@i].IsSameAsRenter" value="@driver.IsSameAsRenter.ToString().ToLower()" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Details
+                    </a>
+                    <button type="button" id="continue-to-confirmation" class="btn btn-primary btn-lg">
+                        Review Changes <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Step 2: Confirmation -->
+        <div id="step-2" class="booking-step d-none">
+            <div class="step-header bg-success text-white">
+                <div class="success-icon mb-3 text-center">
+                    <i class="fas fa-check-circle fa-3x"></i>
+                </div>
+                <h2 class="text-center">Review Your Changes</h2>
+                <p class="mb-0 text-center">Please review the updated information before saving</p>
+            </div>
+
+            <div class="confirmation-content">
+                <!-- Changes will be populated here by JavaScript -->
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" id="back-to-edit" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Edit
+                </button>
+                <button type="button" id="save-changes" class="btn btn-success btn-lg">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .booking-step {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .step-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            border: none;
+            margin-bottom: 20px;
+        }
+        
+        .form-card .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        /* Progress Bar Styling */
+        .booking-progress-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .progress-wrapper {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            background: #fff;
+            padding: 0 10px;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            border: 3px solid #e0e0e0;
+            background: #fff;
+            color: #999;
+        }
+
+        .step-label {
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .progress-line {
+            flex: 1;
+            height: 3px;
+            background: #e0e0e0;
+            margin: 0 -10px;
+            position: relative;
+            top: -35px;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .progress-line.completed {
+            background: #28a745;
+        }
+
+        .progress-step.active .step-circle {
+            border-color: #007bff;
+            background: #007bff;
+            color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        .progress-step.active .step-label {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .progress-step.completed .step-circle {
+            border-color: #28a745;
+            background: #28a745;
+            color: #fff;
+        }
+
+        .progress-step.completed .step-label {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        /* Edit mode specific styles */
+        .rental-date-disabled {
+            background-color: #e9ecef !important;
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        
+        .date-disabled-message {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .car-item.bg-light {
+            background-color: #f8f9fa !important;
+            border: 2px dashed #dee2e6 !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/js/booking-edit.js"></script>
+}

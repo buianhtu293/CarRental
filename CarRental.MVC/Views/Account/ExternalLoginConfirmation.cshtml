@@ -1,0 +1,57 @@
+﻿@using App.Areas.Identity.Models.AccountViewModels
+@model ExternalLoginConfirmationViewModel
+@{
+    ViewData["Title"] = "Sign Up";
+}
+
+<h1 class="text-center">@ViewData["Title"]</h1>
+<h3 class="text-center">Link your account with @ViewData["ProviderDisplayName"]</h3>
+
+<div class="container d-flex justify-content-center min-vh-100" style="margin-top: 120px">
+    <div class="w-50">
+        <form asp-controller="Account" asp-action="ExternalLoginConfirmation" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal bg-light p-4 rounded shadow">
+            <h4 class="text-primary text-center">Account Link Information</h4>
+            <hr />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <p class="text-info text-center">
+                You have successfully authenticated with <strong>@ViewData["ProviderDisplayName"]</strong>.
+                Please enter your email address to link or create an account.
+            </p>
+
+            <div class="form-group">
+                <label asp-for="Email" class="control-label">Email Address</label>
+                <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold d-block">Choose Your Role</label>
+                <div class="d-flex justify-content-between">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="RoleType" value="Customer" id="roleRenter" />
+                        <label class="form-check-label" for="roleRenter">
+                            I want to rent a car
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="RoleType" value="CarOwner" id="roleOwner" />
+                        <label class="form-check-label" for="roleOwner">
+                            I am a car owner
+                        </label>
+                    </div>
+                </div>
+                <span asp-validation-for="RoleType" class="text-danger"></span>
+            </div>
+
+            <div class="form-group text-center">
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -1,0 +1,67 @@
+﻿<div class="container py-4 bg-light">
+    <h5><strong>Preview</strong></h5>
+    <div class="row align-items-start">
+        <!-- Carousel / Car Images -->
+        <div class="col-md-6">
+            <div id="carImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner" id="carouselImages"></div>
+
+                <!-- Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#carImageCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carImageCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+
+                <!-- Indicators -->
+                <div class="carousel-indicators" id="carouselIndicators"></div>
+            </div>
+        </div>
+
+        <!-- Car Info -->
+        <div class="col-md-6 mt-3 mt-md-0">
+            <h5><strong id="carName">Unknown</strong></h5>
+            <p>
+                <strong>Ratings:</strong>
+                <span class="text-warning fs-3">
+                    <i class="fa-regular fa-star"></i>
+                    <i class="fa-regular fa-star"></i>
+                    <i class="fa-regular fa-star"></i>
+                    <i class="fa-regular fa-star"></i>
+                    <i class="fa-regular fa-star"></i>
+                </span>
+                <small class="text-muted ms-2">(No ratings yet)</small>
+            </p>
+            <p><strong>No. of rides:</strong> 0</p>
+            <p><strong>Price:</strong> <span id="carPrice">0 VND/day</span></p>
+            <p><strong>Location:</strong> <span id="carAddress">Unknown</span></p>
+            <p>
+                <strong>Status:</strong>
+                <span class="text-success fw-bold">
+                    Available
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <div class="d-flex justify-content-between mt-4">
+        <a asp-action="Cancel" asp-controller="Car" class="btn btn-link">Cancel</a>
+        <button type="button" id="submitBtn" onclick="handleSubmit()" class="btn btn-primary">Submit</button>
+    </div>
+</div>
+
+<style>
+    .carousel-indicators [data-bs-target] {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #6c757d;
+        opacity: 1;
+    }
+
+    .carousel-indicators .active {
+        background-color: #f57c00;
+    }
+</style>

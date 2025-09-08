@@ -1,0 +1,939 @@
+﻿@using CarRental.MVC.Models.Booking
+@model BookingInformationViewModel
+
+@{
+    ViewData["Title"] = "Booking Information";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <h1 class="display-4 text-center mb-4 text-primary">Car Booking</h1>
+
+        <!-- Progress Bar -->
+        @await Html.PartialAsync("_BookingProgress", Model.Progress)
+
+        <form asp-action="Information" method="post" id="bookingForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="BookingSessionId" />
+            <input type="hidden" asp-for="PickupDate" />
+            <input type="hidden" asp-for="ReturnDate" />
+
+            @for (int i = 0; i < Model.SelectedCarIds.Count; i++)
+            {
+                <input type="hidden" asp-for="SelectedCarIds[i]" />
+            }
+
+            <!-- Hidden fields for Summary -->
+            <input type="hidden" asp-for="Summary.NumberOfDays" />
+            <input type="hidden" asp-for="Summary.PricePerDay" />
+            <input type="hidden" asp-for="Summary.TotalAmount" />
+            <input type="hidden" asp-for="Summary.TotalDeposit" />
+            <input type="hidden" asp-for="Summary.PickupDate" />
+            <input type="hidden" asp-for="Summary.ReturnDate" />
+            <input type="hidden" asp-for="Summary.NumberOfCars" />
+
+            @for (int i = 0; i < Model.Summary.CarItems.Count; i++)
+            {
+                <input type="hidden" asp-for="Summary.CarItems[i].CarId" />
+                <input type="hidden" asp-for="Summary.CarItems[i].CarName" />
+                <input type="hidden" asp-for="Summary.CarItems[i].LicensePlate" />
+                <input type="hidden" asp-for="Summary.CarItems[i].Location" />
+                <input type="hidden" asp-for="Summary.CarItems[i].Seats" />
+                <input type="hidden" asp-for="Summary.CarItems[i].AverageRating" />
+                <input type="hidden" asp-for="Summary.CarItems[i].Transmission" />
+                <input type="hidden" asp-for="Summary.CarItems[i].FuelType" />
+                <input type="hidden" asp-for="Summary.CarItems[i].PricePerDay" />
+                <input type="hidden" asp-for="Summary.CarItems[i].TotalTrips" />
+                <input type="hidden" asp-for="Summary.CarItems[i].Deposit" />
+                <input type="hidden" asp-for="Summary.CarItems[i].SubTotal" />
+            }
+
+            <div class="row">
+                <!-- Left Column: Multiple Cars Information & Booking Summary -->
+                <div class="col-lg-5 mb-4">
+                    <!-- Multiple Cars Information -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cars mr-2"></i>
+                                Car Information (@Model.Summary.NumberOfCars cars)
+                            </h5>
+                            @if (Model.Summary.NumberOfCars > 1)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-light" id="toggleAllCars">
+                                    <i class="fas fa-expand-arrows-alt"></i> Collapse/Expand All
+                                </button>
+                            }
+                        </div>
+                        <div class="card-body p-0">
+                            @if (Model.Summary.CarItems != null && Model.Summary.CarItems.Any())
+                            {
+                                @for (int carIndex = 0; carIndex < Model.Summary.CarItems.Count; carIndex++)
+                                {
+                                    var carItem = Model.Summary.CarItems[carIndex];
+                                    var isFirstCar = carIndex == 0;
+
+                                    <!-- Car Accordion Item -->
+                                    <div class="car-accordion-item">
+                                        <div class="car-header @(!isFirstCar ? "border-top" : "")"
+                                             data-toggle="collapse"
+                                             data-target="#carCollapse@(carIndex)"
+                                             aria-expanded="@(isFirstCar ? "true" : "false")"
+                                             style="cursor: pointer; padding: 15px;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-car text-primary mr-2"></i>
+                                                    <strong>@carItem.CarName</strong>
+                                                    <span class="badge badge-success ml-2">Available</span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-muted mr-2">@carItem.PricePerDay.ToString("N0") VND/day</span>
+                                                    <i class="fas fa-chevron-down collapse-icon"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="carCollapse@(carIndex)" class="collapse @(isFirstCar ? "show" : "")" data-car-index="@carIndex">
+                                            <div class="car-details p-3" style="background: #f8f9fa;">
+                                                <div class="row">
+                                                    <div class="col-md-4 mb-3">
+                                                        <img src="/images/cars/default-car.jpg" alt="@carItem.CarName"
+                                                             class="img-fluid rounded" style="width: 100%; height: 100px; object-fit: cover;">
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <!-- Car details -->
+                                                        <p class="text-muted mb-1"><i class="fas fa-hashtag mr-1"></i>@carItem.LicensePlate</p>
+                                                        <p class="text-muted mb-1"><i class="fas fa-star mr-1 text-warning"></i>@carItem.AverageRating (@carItem.TotalTrips trips)</p>
+                                                        <p class="text-muted mb-1"><i class="fas fa-map-marker-alt mr-1"></i>@carItem.Location</p>
+
+                                                        <div class="row text-center mt-2">
+                                                            <div class="col-4">
+                                                                <small class="text-muted">Seats</small>
+                                                                <div class="font-weight-bold">@carItem.Seats</div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <small class="text-muted">Transmission</small>
+                                                                <div class="font-weight-bold">@carItem.Transmission</div>
+                                                            </div>
+                                                            <div class="col-4">
+                                                                <small class="text-muted">Fuel</small>
+                                                                <div class="font-weight-bold">@carItem.FuelType</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Car pricing summary -->
+                                                <div class="mt-3 p-2 bg-white rounded">
+                                                    <div class="d-flex justify-content-between">
+                                                        <span>Rental price (@Model.Summary.NumberOfDays days):</span>
+                                                        <span class="font-weight-bold text-primary">@carItem.SubTotal.ToString("N0") VND</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between">
+                                                        <span>Deposit:</span>
+                                                        <span class="font-weight-bold text-warning">@carItem.Deposit.ToString("N0") VND</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Booking Summary -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-calculator mr-2"></i>Booking Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Rental period:</span>
+                                <span class="font-weight-bold">@Model.Summary.NumberOfDays days</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Pick-up date:</span>
+                                <span>@Model.Summary.PickupDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Return date:</span>
+                                <span>@Model.Summary.ReturnDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Number of cars:</span>
+                                <span>@Model.Summary.NumberOfCars cars</span>
+                            </div>
+                            <hr>
+
+                            @foreach (var item in Model.Summary.CarItems)
+                            {
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">@item.CarName</small>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>@item.PricePerDay.ToString("N0") VND × @Model.Summary.NumberOfDays days</span>
+                                        <span class="font-weight-bold">@item.SubTotal.ToString("N0") VND</span>
+                                    </div>
+                                </div>
+                            }
+
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="font-weight-bold">Total rental fee:</span>
+                                <span class="font-weight-bold text-primary">@Model.Summary.TotalAmount.ToString("N0") VND</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold">Total deposit:</span>
+                                <span class="font-weight-bold text-warning">@Model.Summary.TotalDeposit.ToString("N0") VND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Renter & Driver Information -->
+                <div class="col-lg-7">
+                    <!-- Renter Information -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="fas fa-user mr-2"></i>Renter Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                @{
+                                // TODO: Write a helper method to requirent field ?
+                                }
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.FullName" class="form-label">Full Name</label>
+                                    <input asp-for="Renter.FullName" class="form-control" placeholder="Enter full name">
+                                    <span asp-validation-for="Renter.FullName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.DateOfBirth" class="form-label">Date of Birth *</label>
+                                    <input asp-for="Renter.DateOfBirth" class="form-control" type="date">
+                                    <span asp-validation-for="Renter.DateOfBirth" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.PhoneNumber" class="form-label">Phone Number *</label>
+                                    <input asp-for="Renter.PhoneNumber" class="form-control" placeholder="Enter phone number">
+                                    <span asp-validation-for="Renter.PhoneNumber" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.Email" class="form-label">Email *</label>
+                                    <input asp-for="Renter.Email" class="form-control" placeholder="Enter email">
+                                    <span asp-validation-for="Renter.Email" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.LicenseNumber" class="form-label">Driver License Number *</label>
+                                    <input asp-for="Renter.LicenseNumber" class="form-control" placeholder="Enter license number">
+                                    <span asp-validation-for="Renter.LicenseNumber" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.LicenseImage" class="form-label">Driver License Image</label>
+                                    <input asp-for="Renter.LicenseImage" class="form-control" type="file" accept="image/*">
+                                    <small class="form-text text-muted">Upload image of your driver license</small>
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <label asp-for="Renter.Address" class="form-label">Address</label>
+                                    <input asp-for="Renter.Address" class="form-control" placeholder="Enter address">
+                                    <span asp-validation-for="Renter.Address" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="Renter.City" class="form-label">City</label>
+                                    <input asp-for="Renter.City" class="form-control" placeholder="City">
+                                    <span asp-validation-for="Renter.City" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.District" class="form-label">District</label>
+                                    <input asp-for="Renter.District" class="form-control" placeholder="District">
+                                    <span asp-validation-for="Renter.District" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Renter.Ward" class="form-label">Ward</label>
+                                    <input asp-for="Renter.Ward" class="form-control" placeholder="Ward">
+                                    <span asp-validation-for="Renter.Ward" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Information with Accordion -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-users mr-2"></i>Driver Information (@Model.Drivers.Count drivers)</h5>
+                            @if (Model.Drivers.Count > 1)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-dark" id="toggleAllDrivers">
+                                    <i class="fas fa-expand-arrows-alt"></i> Collapse/Expand All
+                                </button>
+                            }
+                        </div>
+                        <div class="card-body p-0">
+                            @for (int i = 0; i < Model.Drivers.Count; i++)
+                            {
+                                var isFirstDriver = i == 0;
+
+                                <div class="driver-accordion-item">
+                                    <div class="driver-header @(!isFirstDriver ? "border-top" : "")"
+                                         data-toggle="collapse"
+                                         data-target="#driverCollapse@(i)"
+                                         aria-expanded="@(isFirstDriver ? "true" : "false")"
+                                         style="cursor: pointer; padding: 15px; background: #f8f9fa;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-steering-wheel text-warning mr-2"></i>
+                                                <strong>Driver for: @Model.Drivers[i].CarName</strong>
+                                                @if (Model.Drivers[i].IsSameAsRenter)
+                                                {
+                                                    <span class="badge badge-info ml-2">Same as Renter</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-secondary ml-2">Different Driver</span>
+                                                }
+                                            </div>
+                                            <i class="fas fa-chevron-down driver-collapse-icon"></i>
+                                        </div>
+                                    </div>
+
+                                    <div id="driverCollapse@(i)" class="collapse @(isFirstDriver ? "show" : "")" data-driver-index="@i">
+                                        <div class="driver-details p-3">
+                                            <input type="hidden" asp-for="Drivers[i].CarId" />
+                                            <input type="hidden" asp-for="Drivers[i].CarName" />
+
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input same-as-renter-checkbox" type="checkbox" value="false"
+                                                       asp-for="Drivers[i].IsSameAsRenter" id="sameAsRenter_@i" data-driver-index="@i">
+                                                <label class="form-check-label" for="sameAsRenter_@i">
+                                                    <strong>Driver information same as renter</strong>
+                                                    <small class="text-muted d-block">Only one driver can have the same information as renter</small>
+                                                </label>
+                                            </div>
+
+                                            <div class="driver-info @(Model.Drivers[i].IsSameAsRenter ? "d-none" : "")" id="driverDetails_@i">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label asp-for="Drivers[i].FullName" class="form-label">Driver Full Name</label>
+                                                        <input asp-for="Drivers[i].FullName" class="form-control" placeholder="Enter driver full name">
+                                                        <span asp-validation-for="Drivers[i].FullName" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label asp-for="Drivers[i].DateOfBirth" class="form-label">Date of Birth</label>
+                                                        <input asp-for="Drivers[i].DateOfBirth" class="form-control" type="date">
+                                                        <span asp-validation-for="Drivers[i].DateOfBirth" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label asp-for="Drivers[i].PhoneNumber" class="form-label">Phone Number</label>
+                                                        <input asp-for="Drivers[i].PhoneNumber" class="form-control" placeholder="Enter phone number">
+                                                        <span asp-validation-for="Drivers[i].PhoneNumber" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label asp-for="Drivers[i].Email" class="form-label">Email</label>
+                                                        <input asp-for="Drivers[i].Email" class="form-control" placeholder="Enter email">
+                                                        <span asp-validation-for="Drivers[i].Email" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label asp-for="Drivers[i].LicenseNumber" class="form-label">Driver License Number *</label>
+                                                        <input asp-for="Drivers[i].LicenseNumber" class="form-control license-input"
+                                                               placeholder="Enter license number" data-driver-index="@i">
+                                                        <span asp-validation-for="Drivers[i].LicenseNumber" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label asp-for="Drivers[i].LicenseImage" class="form-label">Driver License Image</label>
+                                                        <input asp-for="Drivers[i].LicenseImage" class="form-control" type="file" accept="image/*">
+                                                        <small class="form-text text-muted">Upload image of driver license</small>
+                                                    </div>
+                                                    <div class="col-md-4 mb-3">
+                                                        <label asp-for="Drivers[i].City" class="form-label">City</label>
+                                                        <input asp-for="Drivers[i].City" class="form-control" placeholder="Enter city">
+                                                        <span asp-validation-for="Drivers[i].City" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-md-4 mb-3">
+                                                        <label asp-for="Drivers[i].District" class="form-label">District</label>
+                                                        <input asp-for="Drivers[i].District" class="form-control" placeholder="Enter district">
+                                                        <span asp-validation-for="Drivers[i].District" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-md-4 mb-3">
+                                                        <label asp-for="Drivers[i].Ward" class="form-label">Ward</label>
+                                                        <input asp-for="Drivers[i].Ward" class="form-control" placeholder="Enter ward">
+                                                        <span asp-validation-for="Drivers[i].Ward" class="text-danger"></span>
+                                                    </div>
+                                                    <div class="col-12 mb-3">
+                                                        <label asp-for="Drivers[i].Address" class="form-label">Address</label>
+                                                        <input asp-for="Drivers[i].Address" class="form-control" placeholder="Enter address">
+                                                        <span asp-validation-for="Drivers[i].Address" class="text-danger"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="@Url.Action("Index", "Car")" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Back
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-outline-danger mr-2" onclick="cancelBooking()">
+                                <i class="fas fa-times mr-2"></i>Cancel Booking
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-arrow-right mr-2"></i>Continue to Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cancel Booking Modal -->
+<div class="modal fade" id="cancelBookingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Cancel Booking</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel the booking process? All entered information will be lost.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Continue Booking</button>
+                <form asp-action="CancelBooking" method="post" style="display: inline;">
+                    <input type="hidden" name="sessionId" value="@Model.BookingSessionId" />
+                    <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Car Accordion Styles - Fixed Layout Shift */
+        .car-accordion-item {
+            border-bottom: 1px solid #e9ecef;
+            overflow: hidden; /* Prevent layout shift */
+        }
+
+        .car-header {
+            transition: background-color 0.2s ease;
+        }
+
+        .car-header:hover {
+            background-color: #f1f3f4 !important;
+        }
+
+        .collapse-icon {
+            transition: transform 0.25s ease;
+            font-size: 14px;
+        }
+
+        .car-header[aria-expanded="true"] .collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Driver Accordion Styles - Fixed Layout Shift */
+        .driver-accordion-item {
+            border-bottom: 1px solid #e9ecef;
+            overflow: hidden; /* Prevent layout shift */
+        }
+
+        .driver-header {
+            transition: background-color 0.2s ease;
+        }
+
+        .driver-header:hover {
+            background-color: #fffef0 !important;
+        }
+
+        .driver-collapse-icon {
+            transition: transform 0.25s ease;
+            font-size: 14px;
+        }
+
+        .driver-header[aria-expanded="true"] .driver-collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Custom collapse animations - NO LAYOUT SHIFT */
+        .collapse {
+            transition: height 0.25s ease !important;
+        }
+
+        .collapsing {
+            transition: height 0.25s ease !important;
+        }
+
+        /* Prevent content jumping */
+        .card-body {
+            position: relative;
+        }
+
+        /* Improved collapse performance */
+        .collapse:not(.show) {
+            display: none;
+        }
+
+        .collapse.show {
+            display: block;
+        }
+
+        .collapsing {
+            position: relative;
+            height: 0;
+            overflow: hidden;
+        }
+
+        /* Single selection styles */
+        .same-as-renter-checkbox {
+            transform: scale(1.2);
+            margin-right: 8px;
+        }
+
+        .same-as-renter-checkbox:checked {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        /* Highlight selected driver */
+        .driver-accordion-item.selected-driver .driver-header {
+            background-color: #e3f2fd !important;
+            border-left: 4px solid #2196f3;
+        }
+
+        .driver-accordion-item.selected-driver .badge-info {
+            background-color: #2196f3 !important;
+            animation: pulse 2s infinite;
+        }
+
+        /* Driver info preserved style */
+        .driver-info-preserved {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Improved checkbox styling */
+        .form-check-label {
+            font-weight: 500;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .form-check-input:checked + .form-check-label {
+            color: #007bff;
+        }
+
+        /* Notification positioning */
+        .alert.position-fixed {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        /* Form validation enhancement */
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* Better visual feedback for required fields */
+        .form-label {
+            font-weight: 500;
+        }
+
+        .form-label:after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        /* Driver section header enhancement */
+        .driver-header strong {
+            font-size: 1.05em;
+        }
+
+        /* Smooth transitions for UI changes */
+        .driver-info, .badge {
+            transition: all 0.3s ease;
+        }
+
+        /* Enhanced focus states */
+        .same-as-renter-checkbox:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Store original driver information to preserve when unchecking
+        var originalDriverInfo = {};
+        
+        $(document).ready(function() {
+            // Initialize - store original driver information
+            $('.driver-accordion-item').each(function() {
+                var driverIndex = $(this).find('[data-driver-index]').data('driver-index');
+                if (typeof driverIndex !== 'undefined') {
+                    storeDriverInfo(driverIndex);
+                }
+            });
+
+            // Handle same as renter checkbox with single selection logic
+            $('.same-as-renter-checkbox').change(function() {
+                var driverIndex = $(this).data('driver-index');
+                var isChecked = $(this).is(':checked');
+                
+                if (isChecked) {
+                    // Store current driver info before clearing
+                    storeDriverInfo(driverIndex);
+                    
+                    // Uncheck all other checkboxes and restore their data
+                    $('.same-as-renter-checkbox').not(this).each(function() {
+                        var otherIndex = $(this).data('driver-index');
+                        if ($(this).is(':checked')) {
+                            $(this).prop('checked', false);
+                            restoreDriverInfo(otherIndex);
+                            updateDriverBadge(otherIndex, false);
+                            $('#driverDetails_' + otherIndex).removeClass('d-none');
+                        }
+                    });
+                    
+                    // Handle current selection - copy renter info to this driver
+                    copyRenterToDriver(driverIndex);
+                    updateDriverBadge(driverIndex, true);
+                    $('#driverDetails_' + driverIndex).addClass('d-none');
+                    
+                    // Show notification
+                    showNotification('Applied renter information to driver for ' + $(this).closest('.driver-accordion-item').find('.driver-header strong').text().replace('Driver for: ', ''), 'success');
+                } else {
+                    // Restore original info when unchecking
+                    restoreDriverInfo(driverIndex);
+                    updateDriverBadge(driverIndex, false);
+                    $('#driverDetails_' + driverIndex).removeClass('d-none');
+                    
+                    // Show notification
+                    showNotification('Restored individual driver information', 'info');
+                }
+            });
+
+            // Store driver info when they change fields (to preserve when user changes)
+            $('.driver-info input').on('change blur', function() {
+                var $driverDetails = $(this).closest('.driver-details');
+                var driverIndex = $driverDetails.find('[data-driver-index]').data('driver-index');
+                if (typeof driverIndex !== 'undefined') {
+                    // Only store if not currently "same as renter"
+                    var isSameAsRenter = $('#sameAsRenter_' + driverIndex).is(':checked');
+                    if (!isSameAsRenter) {
+                        storeDriverInfo(driverIndex);
+                    }
+                }
+            });
+
+            // Auto-update renter info to selected driver when renter info changes
+            $('[name^="Renter."]').on('change blur', function() {
+                $('.same-as-renter-checkbox:checked').each(function() {
+                    var driverIndex = $(this).data('driver-index');
+                    copyRenterToDriver(driverIndex);
+                });
+            });
+
+            // ===== Existing collapse/expand handlers =====
+            $('.car-header').on('click', function() {
+                var $header = $(this);
+                var target = $header.data('target');
+                var $icon = $header.find('.collapse-icon');
+                
+                $(target).collapse('toggle');
+                
+                setTimeout(function() {
+                    var isShown = $(target).hasClass('show') || $(target).hasClass('collapsing') && !$(target).hasClass('collapse');
+                    if (isShown) {
+                        $icon.css('transform', 'rotate(180deg)');
+                        $header.attr('aria-expanded', 'true');
+                    } else {
+                        $icon.css('transform', 'rotate(0deg)');
+                        $header.attr('aria-expanded', 'false');
+                    }
+                }, 50);
+            });
+
+            $('.driver-header').on('click', function() {
+                var $header = $(this);
+                var target = $header.data('target');
+                var $icon = $header.find('.driver-collapse-icon');
+                
+                $(target).collapse('toggle');
+                
+                setTimeout(function() {
+                    var isShown = $(target).hasClass('show') || $(target).hasClass('collapsing') && !$(target).hasClass('collapse');
+                    if (isShown) {
+                        $icon.css('transform', 'rotate(180deg)');
+                        $header.attr('aria-expanded', 'true');
+                    } else {
+                        $icon.css('transform', 'rotate(0deg)');
+                        $header.attr('aria-expanded', 'false');
+                    }
+                }, 50);
+            });
+
+            // Bootstrap collapse event listeners
+            $('.car-accordion-item .collapse').on('show.bs.collapse', function() {
+                var $icon = $(this).prev('.car-header').find('.collapse-icon');
+                $icon.css('transform', 'rotate(180deg)');
+            });
+
+            $('.car-accordion-item .collapse').on('hide.bs.collapse', function() {
+                var $icon = $(this).prev('.car-header').find('.collapse-icon');
+                $icon.css('transform', 'rotate(0deg)');
+            });
+
+            $('.driver-accordion-item .collapse').on('show.bs.collapse', function() {
+                var $icon = $(this).prev('.driver-header').find('.driver-collapse-icon');
+                $icon.css('transform', 'rotate(180deg)');
+            });
+
+            $('.driver-accordion-item .collapse').on('hide.bs.collapse', function() {
+                var $icon = $(this).prev('.driver-header').find('.driver-collapse-icon');
+                $icon.css('transform', 'rotate(0deg)');
+            });
+
+            // Toggle all functionality
+            $('#toggleAllCars').click(function() {
+                var $button = $(this);
+                var $icon = $button.find('i');
+                
+                $button.prop('disabled', true);
+                
+                var allCollapsed = $('.car-accordion-item .collapse').not('.show').length === $('.car-accordion-item .collapse').length;
+                
+                $('.car-accordion-item .collapse').each(function(index) {
+                    var $collapse = $(this);
+                    setTimeout(function() {
+                        if (allCollapsed) {
+                            $collapse.collapse('show');
+                        } else {
+                            $collapse.collapse('hide');
+                        }
+                    }, index * 50);
+                });
+
+                setTimeout(function() {
+                    if (allCollapsed) {
+                        $icon.removeClass('fa-expand-arrows-alt').addClass('fa-compress-arrows-alt');
+                    } else {
+                        $icon.removeClass('fa-compress-arrows-alt').addClass('fa-expand-arrows-alt');
+                    }
+                    $button.prop('disabled', false);
+                }, 300);
+            });
+
+            $('#toggleAllDrivers').click(function() {
+                var $button = $(this);
+                var $icon = $button.find('i');
+                
+                $button.prop('disabled', true);
+                
+                var allCollapsed = $('.driver-accordion-item .collapse').not('.show').length === $('.driver-accordion-item .collapse').length;
+                
+                $('.driver-accordion-item .collapse').each(function(index) {
+                    var $collapse = $(this);
+                    setTimeout(function() {
+                        if (allCollapsed) {
+                            $collapse.collapse('show');
+                        } else {
+                            $collapse.collapse('hide');
+                        }
+                    }, index * 50);
+                });
+
+                setTimeout(function() {
+                    if (allCollapsed) {
+                        $icon.removeClass('fa-expand-arrows-alt').addClass('fa-compress-arrows-alt');
+                    } else {
+                        $icon.removeClass('fa-compress-arrows-alt').addClass('fa-expand-arrows-alt');
+                    }
+                    $button.prop('disabled', false);
+                }, 300);
+            });
+
+            // Form validation
+            $('#bookingForm').submit(function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Keyboard support
+            $('.car-header, .driver-header').on('keypress', function(e) {
+                if (e.which === 13 || e.which === 32) {
+                    e.preventDefault();
+                    $(this).click();
+                }
+            });
+        });
+
+        function storeDriverInfo(driverIndex) {
+            if (typeof driverIndex === 'undefined') return;
+            
+            originalDriverInfo[driverIndex] = {
+                fullName: $('[name="Drivers[' + driverIndex + '].FullName"]').val() || '',
+                dateOfBirth: $('[name="Drivers[' + driverIndex + '].DateOfBirth"]').val() || '',
+                phoneNumber: $('[name="Drivers[' + driverIndex + '].PhoneNumber"]').val() || '',
+                email: $('[name="Drivers[' + driverIndex + '].Email"]').val() || '',
+                licenseNumber: $('[name="Drivers[' + driverIndex + '].LicenseNumber"]').val() || '',
+                address: $('[name="Drivers[' + driverIndex + '].Address"]').val() || '',
+                city: $('[name="Drivers[' + driverIndex + '].City"]').val() || '',
+                district: $('[name="Drivers[' + driverIndex + '].District"]').val() || '',
+                ward: $('[name="Drivers[' + driverIndex + '].Ward"]').val() || ''
+            };
+        }
+
+        function restoreDriverInfo(driverIndex) {
+            if (typeof driverIndex === 'undefined' || !originalDriverInfo[driverIndex]) return;
+            
+            var info = originalDriverInfo[driverIndex];
+            $('[name="Drivers[' + driverIndex + '].FullName"]').val(info.fullName);
+            $('[name="Drivers[' + driverIndex + '].DateOfBirth"]').val(info.dateOfBirth);
+            $('[name="Drivers[' + driverIndex + '].PhoneNumber"]').val(info.phoneNumber);
+            $('[name="Drivers[' + driverIndex + '].Email"]').val(info.email);
+            $('[name="Drivers[' + driverIndex + '].LicenseNumber"]').val(info.licenseNumber);
+            $('[name="Drivers[' + driverIndex + '].Address"]').val(info.address);
+            $('[name="Drivers[' + driverIndex + '].City"]').val(info.city);
+            $('[name="Drivers[' + driverIndex + '].District"]').val(info.district);
+            $('[name="Drivers[' + driverIndex + '].Ward"]').val(info.ward);
+        }
+
+        function copyRenterToDriver(driverIndex) {
+            if (typeof driverIndex === 'undefined') return;
+            
+            // Copy renter information to driver
+            var renterInfo = {
+                fullName: $('[name="Renter.FullName"]').val() || '',
+                dateOfBirth: $('[name="Renter.DateOfBirth"]').val() || '',
+                phoneNumber: $('[name="Renter.PhoneNumber"]').val() || '',
+                email: $('[name="Renter.Email"]').val() || '',
+                licenseNumber: $('[name="Renter.LicenseNumber"]').val() || '',
+                address: $('[name="Renter.Address"]').val() || '',
+                city: $('[name="Renter.City"]').val() || '',
+                district: $('[name="Renter.District"]').val() || '',
+                ward: $('[name="Renter.Ward"]').val() || ''
+            };
+
+            $('[name="Drivers[' + driverIndex + '].FullName"]').val(renterInfo.fullName);
+            $('[name="Drivers[' + driverIndex + '].DateOfBirth"]').val(renterInfo.dateOfBirth);
+            $('[name="Drivers[' + driverIndex + '].PhoneNumber"]').val(renterInfo.phoneNumber);
+            $('[name="Drivers[' + driverIndex + '].Email"]').val(renterInfo.email);
+            $('[name="Drivers[' + driverIndex + '].LicenseNumber"]').val(renterInfo.licenseNumber);
+            $('[name="Drivers[' + driverIndex + '].Address"]').val(renterInfo.address);
+            $('[name="Drivers[' + driverIndex + '].City"]').val(renterInfo.city);
+            $('[name="Drivers[' + driverIndex + '].District"]').val(renterInfo.district);
+            $('[name="Drivers[' + driverIndex + '].Ward"]').val(renterInfo.ward);
+        }
+
+        function updateDriverBadge(driverIndex, isSameAsRenter) {
+            if (typeof driverIndex === 'undefined') return;
+            
+            var $driverItem = $('.driver-accordion-item').eq(driverIndex);
+            var badge = $driverItem.find('.badge');
+            
+            if (isSameAsRenter) {
+                badge.removeClass('badge-secondary').addClass('badge-info').text('Same as Renter');
+                $driverItem.addClass('selected-driver');
+            } else {
+                badge.removeClass('badge-info').addClass('badge-secondary').text('Different Driver');
+                $driverItem.removeClass('selected-driver');
+            }
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            var alertClass = 'alert-' + (type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info');
+            var notification = $('<div class="alert ' + alertClass + ' alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">' +
+                message +
+                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                '<span aria-hidden="true">&times;</span>' +
+                '</button>' +
+                '</div>');
+            
+            $('body').append(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(function() {
+                notification.alert('close');
+            }, 3000);
+        }
+
+        function validateForm() {
+            var isValid = true;
+
+            $('.driver-accordion-item').each(function() {
+                var driverIndex = $(this).find('[data-driver-index]').data('driver-index');
+                if (typeof driverIndex === 'undefined') return true;
+                
+                var isSameAsRenter = $('#sameAsRenter_' + driverIndex).is(':checked');
+
+                if (!isSameAsRenter) {
+                    var licenseNumber = $(this).find('input[name$=".LicenseNumber"]').val();
+                    if (!licenseNumber || licenseNumber.trim() === '') {
+                        isValid = false;
+                        $(this).find('input[name$=".LicenseNumber"]').addClass('is-invalid');
+                        $('#driverCollapse' + driverIndex).collapse('show');
+                    } else {
+                        $(this).find('input[name$=".LicenseNumber"]').removeClass('is-invalid');
+                    }
+                }
+            });
+
+            if (!isValid) {
+                showNotification('Please fill in complete driver information or select "Same as renter"', 'error');
+                setTimeout(function() {
+                    var $firstInvalid = $('.is-invalid').first();
+                    if ($firstInvalid.length) {
+                        $('html, body').animate({
+                            scrollTop: $firstInvalid.offset().top - 150
+                        }, 400);
+                    }
+                }, 100);
+            }
+
+            return isValid;
+        }
+
+        function cancelBooking() {
+            $('#cancelBookingModal').modal('show');
+        }
+    </script>
+}

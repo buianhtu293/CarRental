@@ -1,0 +1,99 @@
+﻿
+@model CarRental.Application.DTOs.Car.CarDetailsDto
+@{
+    ViewData["Title"] = "Car Details";
+}
+
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-md-7">
+            <div class="col-md-4 position-relative">
+                <div id="carCarousel-@Model.Header.CarId" class="carousel slide h-100 position-relative" data-bs-ride="carousel">
+
+                    <div class="carousel-inner h-100">
+                        @for (int i = 0; i < @Model.Basic.Documents.Count; i++)
+                        {
+                            var imgUrl = @Model.Basic.Documents[i];
+                            <div class="carousel-item @(i == 0 ? "active" : "") h-100">
+                                <img src="@imgUrl.FilePath" class="img-fluid w-100 h-100"
+                                     alt="Car Image @(i+1)" style="object-fit: cover; min-height: 200px;">
+                            </div>
+                        }
+                    </div>
+
+                    <button class="btn btn-dark btn-sm position-absolute top-50 start-0 translate-middle-y ms-2" style="opacity: 0.7;" type="button" data-bs-target="#carCarousel-@Model.Header.CarId" data-bs-slide="prev">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="btn btn-dark btn-sm position-absolute top-50 end-0 translate-middle-y me-2" style="opacity: 0.7;" type="button" data-bs-target="#carCarousel-@Model.Header.CarId" data-bs-slide="next">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                    <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2">
+                        <div class="carousel-indicators mb-0">
+                            @for (int i = 0; i < @Model.Basic.Documents.Count; i++)
+                            {
+                                <button type="button"
+                                        data-bs-target="#carCarousel-@Model.Header.CarId"
+                                        data-bs-slide-to="@i"
+                                        class="@(i == 0 ? "active" : "")"
+                                        aria-label="Slide @(i + 1)"></button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-5">
+            <h3>@Model.Header.DisplayName</h3>
+            <div>
+                <span class="me-2">Ratings:</span>
+                <span>@Model.Header.AverageRating.ToString("0.0") / 5</span>
+                <small class="text-muted">(@Model.Header.TotalReviews reviews)</small>
+            </div>
+            <div class="mt-2"><strong>No. of rides:</strong> @Model.Header.TotalReviews</div>
+            <div class="mt-1"><strong>Price:</strong> @Model.Terms.BasePricePerDay?.ToString("0.##") k/day</div>
+            <div class="mt-1"><strong>Location:</strong> @Model.Header.LocationText</div>
+            <div class="mt-1"><strong>Status:</strong> <span class="text-success">@Model.Terms.Status</span></div>
+
+            <a class="btn btn-primary mt-3" asp-controller="Bookings" asp-action="Create" asp-route-carId="@Model.Header.CarId">Rent now</a>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mt-4" id="carTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">Basic information</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">Details</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="terms-tab" data-bs-toggle="tab" data-bs-target="#terms" type="button" role="tab">Terms of use</button>
+        </li>
+    </ul>
+    <div class="tab-content border border-top-0 p-3">
+        <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+            @await Html.PartialAsync("~/Views/Customer/_CarBasicInformation.cshtml", Model)
+        </div>
+        <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+            @await Html.PartialAsync("~/Views/Customer/_CarTechnicalDetails.cshtml", Model)
+        </div>
+        <div class="tab-pane fade" id="terms" role="tabpanel" aria-labelledby="terms-tab">
+            @await Html.PartialAsync("~/Views/Customer/_CarTermsOfUse.cshtml", Model)
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+<style>
+    .carousel-indicators [data-bs-target] {
+        background-color: #fff;
+        opacity: 0.7;
+    }
+
+    .carousel-indicators .active {
+        background-color: #ff6600;
+        opacity: 1;
+    }
+</style>

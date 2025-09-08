@@ -1,0 +1,41 @@
+﻿@model List<CarRental.Application.DTOs.FeedbackDto>
+
+<section class="feedback-section">
+    <div class="container">
+        <h3 class="text-center mb-5 fw-bold section-title">What People Say?</h3>
+        <div class="row">
+            @foreach (var feedback in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card feedback-card h-100 shadow-sm border-0 rounded-4">
+                        <div class="card-body text-center p-4">
+                            
+                            <h6 class="fw-semibold mb-0">@feedback.UserName</h6>
+                            <p class="small text-muted">@feedback.FeedbackDate</p>
+                            
+                            <p class="feedback-comment mb-3">
+                                <i class="fa-solid fa-quote-left text-primary me-2"></i>
+                                @feedback.Comment
+                                <i class="fa-solid fa-quote-right text-primary ms-2"></i>
+                            </p>
+                            
+                            <div class="star-rating text-warning">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= feedback.Rating)
+                                    {
+                                        <i class="fa-solid fa-star"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-regular fa-star"></i>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

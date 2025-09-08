@@ -1,0 +1,240 @@
+﻿@{
+    ViewData["Title"] = "Car Edit Details";
+}
+
+@using CarRental.Application.DTOs
+@model EditCarDto;
+
+<div class="container py-4">
+    <div class="mb-3">
+        <div class="mb-3">
+            <a href="@Url.Action("Owner", "Home")" class="text-decoration-none">Home</a> &gt; 
+            <a href="@Url.Action("MyCars", "Car")" class="text-decoration-none">My Cars</a> &gt;
+            <span>Edit details</span>
+        </div>
+        <h1 class="h4 mb-0">Edit car details</h1>
+    </div>
+
+    <div class="row row-cols-1 g-4">
+        <div class="col">
+            <div class="card shadow-sm border">
+                <div class="row g-0">
+                    <!-- Carousel -->
+                    <div class="col-md-4 position-relative">
+                        <div id="carCarousel-@Model.Id" class="carousel slide h-100" data-bs-ride="carousel">
+                            <div class="carousel-inner h-100">
+                                @{
+                                    // Định nghĩa thứ tự ưu tiên
+                                    var order = new[] { "Front", "Back", "Left", "Right" };
+                                    var sortedDocs = Model.CarDocuments
+                                    .Where(d => !string.IsNullOrEmpty(d.FilePath))
+                                    .OrderBy(d => Array.IndexOf(order, d.DocumentType))
+                                    .ToList();
+
+                                    // Nếu không có ảnh, thêm placeholder
+                                    if (!sortedDocs.Any())
+                                    {
+                                        sortedDocs.Add(new CarDocumentDto { FilePath = "/images/placeholder.jpg", DocumentType = "Placeholder" });
+                                    }
+
+                                    bool isFirst = true;
+                                }
+
+                                @foreach (var doc in sortedDocs)
+                                {
+                                    <div class="carousel-item @(isFirst ? "active" : "") h-100">
+                                        <img src="@doc.FilePath" class="img-fluid w-100 h-100" alt="@doc.DocumentType" style="object-fit: cover; min-height: 200px;">
+                                    </div>
+                                    isFirst = false;
+                                }
+                            </div>
+
+                            <button class="btn btn-dark btn-sm position-absolute top-50 start-0 translate-middle-y ms-2" style="opacity:0.7" type="button" data-bs-target="#carCarousel-@Model.Id" data-bs-slide="prev">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-dark btn-sm position-absolute top-50 end-0 translate-middle-y me-2" style="opacity:0.7" type="button" data-bs-target="#carCarousel-@Model.Id" data-bs-slide="next">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+
+                            <div class="carousel-indicators position-absolute bottom-0 start-50 translate-middle-x mb-2">
+                                @for (int i = 0; i < sortedDocs.Count; i++)
+                                {
+                                    <button type="button" data-bs-target="#carCarousel-@Model.Id" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"></button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Car Info -->
+                    <div class="col-md-8">
+                        <div class="card-body d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h5 class="card-title mb-0">@($"{Model.Brand} {Model.Model} {Model.Year}")</h5>
+                            </div>
+
+                            <!-- Ratings -->
+                            <div class="mb-2">
+                                <span class="text-muted small">Ratings:</span>
+                                @if (Model.HasRatings)
+                                {
+                                    @for (int i = 0; i < Model.FullStars; i++)
+                                    {
+                                        <i class="fas fa-star text-warning"></i>
+                                    }
+                                    @if (Model.HasHalfStar)
+                                    {
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    }
+                                    @for (int i = 0; i < Model.EmptyStars; i++)
+                                    {
+                                        <i class="far fa-star text-warning"></i>
+                                    }
+                                    <span class="text-muted small ms-1">(@Model.FormattedAverageRating - @Model.TotalReviews reviews)</span>
+                                }
+                                else
+                                {
+                                    @for (int i = 0; i < 5; i++)
+                                    {
+                                        <i class="far fa-star text-muted"></i>
+                                    }
+                                    <span class="text-muted small ms-1">(No ratings yet)</span>
+                                }
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-muted small">No. of rides:</span>
+                                <span class="fw-bold">@Model.NumberOfRides</span>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-muted small">Price:</span>
+                                <span class="fw-bold text-dark">@(Model.BasePricePerDay?.ToString("N0") ?? "0")k/day</span>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-muted small">Locations:</span>
+                                @{
+                                    var parts = new List<string>();
+                                    if (!string.IsNullOrEmpty(Model.Address)) parts.Add(Model.Address);
+                                    if (!string.IsNullOrEmpty(Model.Ward)) parts.Add(Model.Ward);
+                                    if (!string.IsNullOrEmpty(Model.District)) parts.Add(Model.District);
+                                    if (!string.IsNullOrEmpty(Model.Province)) parts.Add(Model.Province);
+
+                                    var fullAddress = string.Join(", ", parts);
+                                }
+                                <span class="text-dark">@fullAddress</span>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-muted small">Status:</span>
+                                @if (Model.Status == "Booked")
+                                {
+                                    <span class="badge bg-primary">Booked</span>
+                                }
+                                else
+                                {
+                                    <select asp-for="Status" class="form-select form-select-sm w-auto" 
+                                        data-car-id="@Model.Id" id="car-status">
+                                        <option value="Available" selected="@(Model.Status == "Available")">Available</option>
+                                        <option value="Stopped" selected="@(Model.Status == "Stopped")">Stopped</option>
+                                    </select>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="editCarTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#tab-basic">Basic Information</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#tab-details">Details</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#tab-pricing">Pricing</a>
+        </li>
+    </ul>
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="tab-basic">
+            @Html.Partial("_BasicInformation", Model)
+        </div>
+        <div class="tab-pane fade" id="tab-details">
+            @Html.Partial("_Details", Model)
+        </div>
+        <div class="tab-pane fade" id="tab-pricing">
+            @Html.Partial("_Pricing", Model)
+        </div>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        padding: 0.5rem 1rem;
+    }
+
+    .carousel-indicators [data-bs-target] {
+        background-color: #fff;
+        opacity: 0.7;
+    }
+
+    .carousel-indicators .active {
+        background-color: #ff6600;
+        opacity: 1;
+    }
+
+    .rating-stars i {
+        font-size: 0.9rem;
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        color: #ff6600;
+    }
+
+    table th, table td {
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const carStatus = document.getElementById("car-status");
+
+        if (carStatus) {
+            carStatus.addEventListener("change", function () {
+                const carId = this.dataset.carId;
+                const newStatus = this.value;
+
+                fetch('@Url.Action("UpdateStatus", "Car")', {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: `id=${encodeURIComponent(carId)}&status=${encodeURIComponent(newStatus)}`
+                })
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        toastr.success("Car status updated successfully!");
+                    } else {
+                        toastr.error("Failed to update car status.");
+                    }
+                })
+                .catch(() => {
+                    toastr.error("Error occurred while updating.");
+                });
+            });
+        }
+    });
+</script>

@@ -1,0 +1,173 @@
+﻿@using CarRental.Application.DTOs
+@model EditCarDto;
+
+<form id="editPricingForm" method="post" enctype="multipart/form-data">
+<div class="container-fluid">
+    <div class="container">
+        <div class="row">
+            <input type="hidden" asp-for="@Model.Id" />
+
+            <!-- Base price -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Set base price for your car:</label>
+            </div>
+            <div class="col-md-8 mb-3">
+                <input name="BasePricePerDay" asp-for="@Model.BasePricePerDay" type="number" min="0" max="1000000000" /> VND/Day
+                    <span class="text-danger" id="error-BasePricePerDay"></span>
+            </div>
+
+            <!-- Deposit -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Required deposit:</label>
+            </div>
+            <div class="col-md-8 mb-3">
+                <input name="RequiredDeposit" asp-for="@Model.RequiredDeposit" type="number" min="0" max="1000000000" /> VND
+                    <span class="text-danger" id="error-RequiredDeposit"></span>
+            </div>
+        </div>
+
+            @{
+                // Các terms cần hiển thị
+                var allTerms = new[] { "NoSmoking", "NoPet", "NoFood", "Other" };
+                var termDict = Model.CarSpecifications.ToDictionary(t => t.Name, t => t);
+
+                int total = allTerms.Length;
+                int perCol = (int)Math.Ceiling(total / 2.0);
+
+                var grouped = allTerms.Select((val, idx) => new { val, idx })
+                .GroupBy(x => x.idx / perCol)
+                .ToList();
+            }
+
+            <div class="col-12 mt-4">
+                <label><strong>Terms of use</strong></label>
+                <div class="row">
+                    @foreach (var group in grouped)
+                    {
+                        <div class="col-md-6 mb-2">
+                            @foreach (var item in group)
+                            {
+                                var termName = item.val;
+                                int idx = item.idx;
+
+                                // lấy spec trong DB nếu có
+                                var spec = termDict.ContainsKey(termName) ? termDict[termName] : null;
+                                var specId = spec?.Id ?? Guid.Empty;
+                                var isChecked = spec?.Required ?? false;
+
+                                <div class="form-check">
+                                    <!-- Hidden để giữ Id và Name -->
+                                    <input type="hidden" name="CarSpecifications[@idx].Id" value="@specId" />
+                                    <input type="hidden" name="CarSpecifications[@idx].Name" value="@termName" />
+
+                                    <!-- Checkbox bind vào Required -->
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           id="term-@idx"
+                                           name="CarSpecifications[@idx].Required"
+                                           value="true"
+                                           @(isChecked ? "checked" : "") />
+
+                                    <label class="form-check-label" for="term-@idx">@termName</label>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+        <!-- buttons -->
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-danger" onclick="discardStep3()">Discard</button>
+            <button type="button" class="btn btn-primary" onclick="saveStep3()">Save</button>
+        </div>
+    </div>
+</div>
+</form>
+
+<script>
+    function validateFormPricing() {
+        let isValid = true;
+
+        // clear lỗi cũ
+        document.querySelectorAll(".error").forEach(e => e.textContent = "");
+
+        // BasePricePerDay (optional + range)
+        const priceInput = document.querySelector("[name='BasePricePerDay']");
+        if (priceInput.value) {
+            const priceVal = parseInt(priceInput.value);
+            if (priceVal < 0 || priceVal > 1000000000) {
+                document.getElementById("error-BasePricePerDay").textContent = "Base price must be between 0 and 1000000000.";
+                isValid = false;
+            }
+        }
+
+        // RequiredDeposit (optional + range)
+        const depositInput = document.querySelector("[name='RequiredDeposit']");
+        if (depositInput.value) {
+            const depositVal = parseInt(depositInput.value);
+            if (depositVal < 0 || depositVal > 1000000000) {
+                document.getElementById("error-RequiredDeposit").textContent = "Required deposit must be between 0 and 1000000000.";
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("editPricingForm");
+        // lưu snapshot dữ liệu ban đầu
+        initialFormData = new FormData(form);
+    });
+
+    function saveStep3() {
+        const form = document.getElementById("editPricingForm");
+
+        if (!validateFormPricing()) {
+            return; // dừng nếu chưa hợp lệ
+        }
+
+        const formData = new FormData(form);
+
+        fetch('@Url.Action("EditPricing", "Car")', {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                toastr.success("Car details updated!");
+                // update snapshot để Discard lần sau trả về đúng giá trị mới
+                initialFormData = new FormData(form);
+            } else {
+                toastr.error("Failed to update car details.");
+            }
+        })
+        .catch(() => toastr.error("Error occurred while saving."));
+    }
+
+        function discardStep3() {
+        const form = document.getElementById("editPricingForm");
+
+        // clear trước
+        form.reset();
+
+        // điền lại từ initialFormData
+        for (let [key, value] of initialFormData.entries()) {
+            const field = form.elements[key];
+            if (!field) continue;
+
+            if (field.type === "checkbox" || field.type === "radio") {
+                field.checked = (value === "on" || field.value === value);
+            } else if (field.type === "file") {
+                // file input không set được bằng JS → giữ nguyên (nếu cần thì reset bằng clear)
+                continue;
+            } else {
+                field.value = value;
+            }
+        }
+
+        toastr.info("Form reset to original values.");
+    }
+</script>

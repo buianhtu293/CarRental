@@ -1,0 +1,367 @@
+﻿<!-- _Step2Details.cshtml -->
+<!-- Contact Start -->
+<div class="container-fluid">
+    <div class="container">
+        <div class="row">
+            <!-- Mileage -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Mileage: <span class="text-danger">*</span></label>
+                <input type="number" name="Mileage" class="form-control" min="0" max="10000" />
+                <span class="error text-danger" id="error-Mileage"></span>
+            </div>
+
+            <!-- Fuel consumption -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fuel consumption: </label>
+                <input type="number" name="FuelConsumption" class="form-control" min="0" max="10000" /> &nbsp; liter/100km
+                <span class="error text-danger" id="error-FuelConsumption"></span>
+            </div>
+
+            <!-- Address -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Address: <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" placeholder="Search for an address" />
+                <select class="form-select" name="Province">
+                </select>
+                <select class="form-select" name="District">
+                </select>
+                <select class="form-select" name="Ward">
+                </select>
+                <input type="text" name="Address" class="form-control" placeholder="House number, Street" />
+                <span class="error text-danger" id="error-Address"></span>
+            </div>
+
+            <!-- Description -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Description: </label> <br />
+                <textarea class="form-control" name="Description" rows="5" placeholder="Description of your vehicle"></textarea>
+                <span class="error text-danger" id="error-Description"></span>
+            </div>
+        </div>
+
+        <!-- Additional functions -->
+        <div class="col-12">
+            <label><strong>Additional functions:</strong></label>
+            <div class="row">
+                <div class="col-md-3 bg-light p-3 m-2">
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="Bluetooth" class="form-check-input" id="Bluetooth" checked />
+                        <label class="form-check-label" for="Bluetooth">
+                            <i class="fas fa-bluetooth"></i> Bluetooth
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="GPS" class="form-check-input" id="GPS" />
+                        <label class="form-check-label" for="GPS">
+                            <i class="fas fa-map-marker-alt"></i> GPS
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="Camera" class="form-check-input" id="Camera" />
+                        <label class="form-check-label" for="Camera">
+                            <i class="fas fa-camera"></i> Camera
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-md-3 bg-light p-3 m-2">
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="Sunroof" class="form-check-input" id="Sunroof" />
+                        <label class="form-check-label" for="Sunroof">Sun roof</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="ChildLock" class="form-check-input" id="ChildLock" checked />
+                        <label class="form-check-label" for="ChildLock">Child lock</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="ChildSeat" class="form-check-input" id="ChildSeat" checked />
+                        <label class="form-check-label" for="ChildSeat">Child seat</label>
+                    </div>
+                </div>
+
+                <div class="col-md-3 bg-light p-3 m-2">
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="DVD" class="form-check-input" id="DVD" />
+                        <label class="form-check-label" for="DVD">DVD</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="Specification" value="USB" class="form-check-input" id="USB" />
+                        <label class="form-check-label" for="USB">USB</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Images -->
+        <label class="form-label">Images: <span class="text-danger">*</span></label>
+        <div class="row mb-3">
+            <!-- Front -->
+            <div class="col-md-6">
+                <label class="form-label">Front</label>
+                <input type="file" class="form-control" name="Front" onchange="handleFileChange(event, 'Front')" />
+                <span class="error text-danger" id="error-Front"></span>
+            </div>
+
+            <!-- Back -->
+            <div class="col-md-6">
+                <label class="form-label">Back</label>
+                <input type="file" class="form-control" name="Back" onchange="handleFileChange(event, 'Back')" />
+                <span class="error text-danger" id="error-Back"></span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <!-- Left -->
+            <div class="col-md-6">
+                <label class="form-label">Left</label>
+                <input type="file" class="form-control" name="Left" onchange="handleFileChange(event, 'Left')" />
+                <span class="error text-danger" id="error-Left"></span>
+            </div>
+
+            <!-- Right -->
+            <div class="col-md-6">
+                <label class="form-label">Right</label>
+                <input type="file" class="form-control" name="Right" onchange="handleFileChange(event, 'Right')" />
+                <span class="error text-danger" id="error-Right"></span>
+            </div>
+        </div>
+
+        <p class="text-muted">Please include full 4 images of your vehicle</p>
+        <p class="text-muted">File type: .jpg, .jpeg, .png, .gif</p>
+
+        <!-- Navigation buttons -->
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Cancel" asp-controller="Car" class="btn btn-link">Cancel</a>
+            <button type="button" class="btn btn-primary" onclick="saveStep2()">Next</button>
+        </div>
+    </div>
+</div>
+<!-- Contact End -->
+
+<style>
+    .error {
+        color: red;
+        font-size: 0.9rem;
+    }
+
+    .input-error {
+        border: 1px solid red !important;
+        background-color: #ffecec;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const provinceSelect = document.querySelector('select[name="Province"]');
+        const districtSelect = document.querySelector('select[name="District"]');
+        const wardSelect = document.querySelector('select[name="Ward"]');
+
+        // Load provinces
+        fetch('https://open.oapi.vn/location/provinces?page=0&size=63')
+            .then(res => res.json())
+            .then(data => {
+                provinceSelect.innerHTML = '<option value="">City/Province</option>';
+                data.data.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.id;
+                    option.textContent = province.name;
+                    provinceSelect.appendChild(option);
+                });
+                restoreStep2Form();
+            });
+
+        // Load districts
+        provinceSelect.addEventListener('change', function () {
+            const provinceId = this.value;
+            districtSelect.innerHTML = '<option value="">District</option>';
+            wardSelect.innerHTML = '<option value="">Ward</option>';
+
+            if (!provinceId) return;
+
+            fetch(`https://open.oapi.vn/location/districts/${provinceId}`)
+                .then(res => res.json())
+                .then(data => {
+                    data.data.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.id;
+                        option.textContent = district.name;
+                        districtSelect.appendChild(option);
+                    });
+                });
+        });
+
+        // Load wards
+        districtSelect.addEventListener('change', function () {
+            const districtId = this.value;
+            wardSelect.innerHTML = '<option value="">Ward</option>';
+
+            if (!districtId) return;
+
+            fetch(`https://open.oapi.vn/location/wards/${districtId}`)
+                .then(res => res.json())
+                .then(data => {
+                    data.data.forEach(ward => {
+                        const option = document.createElement('option');
+                        option.value = ward.id;
+                        option.textContent = ward.name;
+                        wardSelect.appendChild(option);
+                    });
+                });
+        });
+    });
+
+    // Validate form
+    function validateStep2() {
+        const errors = {};
+        const step2 = document.getElementById('step2');
+
+        const mileage = step2.querySelector('[name="Mileage"]').value.trim();
+        const fuelConsumption = step2.querySelector('[name="FuelConsumption"]').value.trim();
+        const address = step2.querySelector('[name="Address"]').value.trim();
+
+        if (!mileage || Number(mileage) <= 0) {
+            errors.Mileage = "Mileage is required and must be greater than 0.";
+        }
+        if (fuelConsumption && (Number(fuelConsumption) <= 0 || Number(fuelConsumption) >= 10000)) {
+            errors.FuelConsumption = "Fuel consumption must be between 0 and 10000.";
+        }
+        if (!address) {
+            errors.Address = "Address is required.";
+        }
+
+        const imgNames = ["Front", "Back", "Left", "Right"];
+        const allowedExt = [".jpg", ".jpeg", ".png", ".gif"];
+        imgNames.forEach(name => {
+            const fileInput = step2.querySelector(`[name="${name}"]`);
+            const file = fileInput?.files?.[0];
+            if (!file) {
+                errors[name] = `${name} image is required.`;
+            } else if (!allowedExt.includes(getExtension(file.name))) {
+                errors[name] = `Allowed formats: ${allowedExt.join(", ")}`;
+            }
+        });
+
+        return errors;
+    }
+
+    function renderStep2Errors(errors) {
+        document.querySelectorAll("#step2 .error").forEach(el => el.innerText = "");
+        Object.keys(errors).forEach(key => {
+            const errEl = document.getElementById("error-" + key);
+            if (errEl) errEl.innerText = errors[key];
+        });
+    }
+
+    // Save Step2 data
+    function saveStep2() {
+        let data = JSON.parse(sessionStorage.getItem("CarCreateData") || "{}");
+
+        const errors = validateStep2();
+        renderStep2Errors(errors);
+
+        const provinceSelect = document.querySelector('[name="Province"]');
+        const districtSelect = document.querySelector('[name="District"]');
+        const wardSelect = document.querySelector('[name="Ward"]');
+
+        const step2Data = {
+            Mileage: parseFloat(document.querySelector('[name="Mileage"]').value) || null,
+            FuelConsumption: parseFloat(document.querySelector('[name="FuelConsumption"]').value) || null,
+            Address: document.querySelector('[name="Address"]').value.trim() || null,
+            Province: provinceSelect.value ? provinceSelect.options[provinceSelect.selectedIndex].text : null,
+            District: districtSelect.value ? districtSelect.options[districtSelect.selectedIndex].text : null,
+            Ward: wardSelect.value ? wardSelect.options[wardSelect.selectedIndex].text : null,
+            Description: document.querySelector('[name="Description"]').value || "",
+            CarSpecifications: [],
+            CarDocuments: [],
+            errorsStep2: errors
+        };
+
+        // Additional functions
+        document.querySelectorAll('input[name="Specification"]').forEach(cb => {
+            step2Data.CarSpecifications.push({
+                name: cb.value,
+                required: cb.checked,
+                source: "AdditionalFunctions"
+            });
+        });
+
+        // Save images
+        ["Front", "Back", "Left", "Right"].forEach(name => {
+            const fileInput = document.querySelector(`[name="${name}"]`);
+            const file = fileInput?.files?.[0];
+    if (file) {
+        addOrUpdateDoc(data, name, file);
+    }
+        });
+
+        data.step2 = step2Data;
+
+        if (Object.keys(errors).length > 0 && !data.firstErrorStep) {
+           data.firstErrorStep = 2; // chỉ set nếu errors không rỗng
+        } else if (Object.keys(errors).length === 0) {
+           // xóa firstErrorStep nếu step này đã được sửa lỗi
+           if (data.firstErrorStep === 2) delete data.firstErrorStep;
+        }
+
+        sessionStorage.setItem("CarCreateData", JSON.stringify(data));
+
+        nextStep(); 
+    }
+
+    // Restore Step2 form
+    function restoreStep2Form() {
+        const carData = JSON.parse(sessionStorage.getItem("CarCreateData") || "{}");
+        const data = carData.step2 || {};
+        if (!data) return;
+
+        document.querySelector('[name="Mileage"]').value = data.Mileage != null ? data.Mileage : "";
+        document.querySelector('[name="FuelConsumption"]').value = data.FuelConsumption != null ? data.FuelConsumption : "";
+        document.querySelector('[name="Address"]').value = data.Address || "";
+        document.querySelector('[name="Description"]').value = data.Description || "";
+
+        // Restore Province/District/Ward
+        if (data.Province) document.querySelector('[name="Province"]').value = data.Province.id;
+        if (data.District) document.querySelector('[name="District"]').value = data.District.id;
+        if (data.Ward) document.querySelector('[name="Ward"]').value = data.Ward.id;
+
+        // Restore Additional functions
+        if (data.CarSpecifications) {
+            data.CarSpecifications.forEach(spec => {
+                const checkbox = document.querySelector(`[name="Specification"][value="${spec.name}"]`);
+                if (checkbox) checkbox.checked = spec.required;
+            });
+        }
+    }
+
+        function handleFileChange(e, type) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const previewUrl = URL.createObjectURL(file);
+
+        // Lấy dữ liệu session hiện tại
+        let data = getData();
+
+        if (!data.step1) data.step1 = {};
+        if (!data.step1.CarDocuments) data.step1.CarDocuments = [];
+
+        // Tìm xem đã có loại này chưa -> update
+        const existing = data.step1.CarDocuments.find(d => d.documentType === type);
+        if (existing) {
+            existing.file = file;
+            existing.filePath = previewUrl;
+        } else {
+            data.step1.CarDocuments.push({
+                documentType: type,
+                file: file,
+                filePath: previewUrl
+            });
+        }
+
+        // Lưu lại vào sessionStorage
+        setData(data);
+    }
+
+    function getExtension(filename) {
+        return filename.slice(filename.lastIndexOf(".")).toLowerCase();
+    }
+</script>

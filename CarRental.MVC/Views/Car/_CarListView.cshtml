@@ -1,0 +1,78 @@
+﻿@using CarRental.Application.DTOs;
+@using CarRental.Domain.Models;
+@model PagedResult<CarSearchDto>
+
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>No.</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Ratings</th>
+            <th>No. of Rides</th>
+            <th>Price</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var (car, index) in Model.Items.Select((value, i) => (value, i)))
+        {
+            <tr>
+                <td>@(index + 1)</td>
+                <td>
+                    @if (car.ImageUrls != null && car.ImageUrls.Any())
+                    {
+                        <img src="@car.ImageUrls[0]" alt="@($"{car.Brand} {car.Model}")" style="width: 120px; border-radius: 5px;" />
+                    }
+                    else
+                    {
+                        <img src="~/images/placeholder.png" alt="No Image Available" style="width: 120px; border-radius: 5px;" />
+                    }
+                </td>
+                <td>@($"{car.Brand} {car.Model}")</td>
+                <td>
+                    @if (car.HasRatings)
+                    {
+                        @for (int i = 0; i < car.FullStars; i++)
+                        {
+                            <i class="fas fa-star text-warning"></i>
+                        }
+
+                        @if (car.HasHalfStar)
+                        {
+                            <i class="fas fa-star-half-alt text-warning"></i>
+                        }
+
+                        @for (int i = 0; i < car.EmptyStars; i++)
+                        {
+                            <i class="far fa-star text-warning"></i>
+                        }
+
+                        <span class="text-muted small ms-1">(@car.FormattedAverageRating - @car.TotalReviews reviews)</span>
+                    }
+                    else
+                    {
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <i class="far fa-star text-muted"></i>
+                        }
+                        <span class="text-muted small ms-1">(No ratings yet)</span>
+                    }
+                </td>
+                <td>@car.NumberOfRides</td>
+                <td>@car.BasePricePerDay?.ToString("N0") VNĐ/day</td>
+                <td>@car.District, @car.Province</td>
+                <td><span class="badge bg-success">@car.Status</span></td>
+                <td>
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("Details", "Car", new { id = car.Id })" class="btn btn-primary btn-sm">Rent now</a>
+                        <a href="@Url.Action("AddToCart", "Cart", new { carId = car.Id })" class="btn btn-secondary btn-sm">Add to cart</a>
+                        <a href="@Url.Action("ViewDetails", "Customer", new { id = car.Id })" class="btn btn-sm btn-outline-primary">View details</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

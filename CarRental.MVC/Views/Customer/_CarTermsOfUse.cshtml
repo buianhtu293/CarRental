@@ -1,0 +1,44 @@
+﻿@model CarRental.Application.DTOs.Car.CarDetailsDto
+
+<div class="row">
+    <div class="col-md-6">
+        <div><strong>Price per day:</strong> @Model.Terms.BasePricePerDay?.ToString("#,##0.##")</div>
+        <div><strong>Required deposit:</strong> @Model.Terms.RequiredDeposit?.ToString("#,##0.##")</div>
+    </div>
+    @* <h5 class="mt-4 mb-2">Terms of use</h5>
+    <div class="border rounded p-3">
+        @{
+            var hasAny =
+            (Model.Terms.NoSmoking == true) ||
+            (Model.Terms.NoPets == true) ||
+            (Model.Terms.NoFood == true) ||
+            !string.IsNullOrWhiteSpace(Model.Terms.Other);
+        }
+
+        @if (hasAny)
+        {
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                @if (Model.Terms.NoSmoking == true)
+                {
+                    <li><i class="fa-solid fa-circle-check me-2"></i>No smoking</li>
+                }
+                @if (Model.Terms.NoPets == true)
+                {
+                    <li><i class="fa-solid fa-circle-check me-2"></i>No pets</li>
+                }
+                @if (Model.Terms.NoFood == true)
+                {
+                    <li><i class="fa-solid fa-circle-check me-2"></i>No food in cars</li>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Terms.Other))
+                {
+                    <li><strong>Other:</strong> @Model.Terms.Other</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <span class="text-muted fst-italic">No special terms provided.</span>
+        }
+    </div> *@
+</div>

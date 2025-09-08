@@ -1,0 +1,1239 @@
+﻿@using CarRental.MVC.Models.Booking
+@model BookingViewModel
+
+@{
+    ViewData["Title"] = "Car Booking Process";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <h1 class="display-4 text-center mb-4 text-primary">Car Booking</h1>
+
+        <!-- Progress Bar -->
+        @await Html.PartialAsync("_BookingProgress", Model.Progress)
+
+        <!-- Step 1: Information -->
+        <div id="step-1" class="booking-step @(Model.Progress.CurrentStep == 1 ? "" : "d-none")">
+            @await Html.PartialAsync("_BookingInformation", Model)
+        </div>
+
+        <!-- Step 2: Payment -->
+        <div id="step-2" class="booking-step @(Model.Progress.CurrentStep == 2 ? "" : "d-none")">
+            @await Html.PartialAsync("_BookingPayment", Model)
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="step-3" class="booking-step @(Model.Progress.CurrentStep == 3 ? "" : "d-none")">
+            @await Html.PartialAsync("_BookingConfirmation", Model)
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .booking-step {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .step-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            border: none;
+            margin-bottom: 20px;
+        }
+        
+        .form-card .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #d1d3e2;
+            padding: 12px 15px;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            border-color: #5a67d8;
+            box-shadow: 0 0 0 0.2rem rgba(90, 103, 216, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .error-message {
+            background: #fed7d7;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .error-message ul {
+            margin-left: 20px;
+            margin-bottom: 0;
+        }
+        
+        .error-message li {
+            margin-bottom: 5px;
+        }
+        
+        .error-message strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .success-message {
+            background: #c6f6d5;
+            border: 1px solid #9ae6b4;
+            color: #22543d;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* License Upload Styling */
+        .license-upload-container {
+            position: relative;
+        }
+        
+        .upload-progress {
+            margin-top: 10px;
+        }
+        
+        .license-preview {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+        
+        .license-preview img {
+            border-radius: 4px;
+        }
+        
+        .driver-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .driver-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .form-check-input:checked {
+            background-color: #5a67d8;
+            border-color: #5a67d8;
+        }
+        
+        /* Address Selection Styling */
+        .form-control select {
+            cursor: pointer;
+        }
+        
+        .form-control:disabled {
+            background-color: #e9ecef;
+            opacity: 1;
+        }
+
+        /* Step 3 Confirmation Styling */
+        #step-3 .step-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        #step-3 .success-icon {
+            animation: bounceIn 1s ease-in-out;
+        }
+        
+        @@keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        #step-3 .confirmation-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.3s ease;
+        }
+        
+        #step-3 .confirmation-item:hover {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 12px 10px;
+        }
+        
+        #step-3 .confirmation-item:last-child {
+            border-bottom: none;
+        }
+        
+        #step-3 .car-confirmation {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        #step-3 .car-confirmation:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* Notification styling */
+        .booking-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 350px;
+        }
+        
+        .booking-notification .alert {
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+    </style>
+}
+
+@section Scripts {
+    <!-- Include Booking Validator -->
+    <script src="~/js/booking/booking-validator.js"></script>
+    <script>
+        var currentStep = @Model.Progress.CurrentStep;
+        
+        function showStep(stepNumber) {
+            $('.booking-step').addClass('d-none');
+            $('#step-' + stepNumber).removeClass('d-none');
+            currentStep = stepNumber;
+            updateProgressBar(stepNumber);
+        }
+        
+        function updateProgressBar(step) {
+            // Update progress bar logic
+            $('.progress-step').removeClass('active completed');
+            for (let i = 1; i <= step; i++) {
+                if (i < step) {
+                    $('.progress-step[data-step="' + i + '"]').addClass('completed');
+                } else if (i === step) {
+                    $('.progress-step[data-step="' + i + '"]').addClass('active');
+                }
+            }
+        }
+        
+        // function validateCurrentStep() {
+        //     return BookingValidator.validateStep(currentStep);
+        // }
+        
+        // function nextStep() {
+        //     if (validateCurrentStep()) {
+        //         if (currentStep < 3) {
+        //             showStep(currentStep + 1);
+        //         }
+        //     }
+        // }
+        
+        // function previousStep() {
+        //     if (currentStep > 1) {
+        //         showStep(currentStep - 1);
+        //     }
+        // }
+        
+        // Booking Information Scripts
+        $(document).ready(function () {
+            // #region Calculate rental duration
+
+            // Calculate rental duration
+            // Main logic is reduce minute to zero
+            function stripMinutesToZero(inputSelector) {
+                $(inputSelector).on("change", function () {
+                    let val = $(this).val();
+                    if (val) {
+                        let dt = new Date(val);
+                        dt.setMinutes(0);
+                        dt.setSeconds(0);
+                        // format lại thành yyyy-MM-ddTHH:mm
+                        let timezoneOffset = dt.getTimezoneOffset();
+                        dt.setMinutes(dt.getMinutes() - timezoneOffset);
+                        let formatted = dt.toISOString().slice(0, 16);
+                        $(this).val(formatted);
+                    }
+                });
+            }
+            // Apply cho 2 input pick up and return date
+            stripMinutesToZero("#PickupDate");
+            stripMinutesToZero("#ReturnDate");
+
+            function updateRentalDuration() {
+                var pickup = new Date($('#PickupDate').val());
+                var returnDate = new Date($('#ReturnDate').val());
+
+                if (!isNaN(pickup) && !isNaN(returnDate) && returnDate > pickup) {
+                    var timeDiff = Math.abs(returnDate - pickup);
+                    var hoursDiff = timeDiff / (1000 * 3600);
+                    var days = Math.round((hoursDiff/24)*10)/10;
+                    $('#rental-duration').text(days + ' day(s)');
+
+                    $('.car-item').each(function () {
+                        let pricePerDay = parseFloat($(this).find('[data-price]').data('price'));
+                        let subtotal = pricePerDay * days;
+                        $(this).find('.car-subtotal').text(subtotal.toLocaleString('en-US'));
+                    });
+                }
+            }
+            
+            $('#PickupDate, #ReturnDate').change(updateRentalDuration);
+
+            // #endregion
+
+            // #region Renter Address Information
+            // Show up select province
+            let selectedCity = "@Html.Raw(@Model.Information.Renter.City)";
+            let selectedDistrict = "@Html.Raw(@Model.Information.Renter.District)";
+            let selectedWard = "@Html.Raw(@Model.Information.Renter.Ward)";
+
+            // Load province
+
+            $.get('https://open.oapi.vn/location/provinces?size=1000', function(cities) {
+                let selectedCityId = null;
+
+                $.each(cities.data, (index, c) => {
+                    if (selectedCity && c.name === selectedCity) {
+                        
+                        selectedCityId = c.id;
+                    }
+                    $('#RenterCity').append(
+                        `<option value="${c.name}" data-city-id="${c.id}" ${c.name === selectedCity ? "selected" : ""}>${c.name}</option>`
+                    );
+                });
+
+                if (selectedCityId) {
+                    loadDistrictsByCity(selectedCityId);
+                }
+
+            });
+
+            $('#RenterCity').on("change", function(){
+                let cityId = $("#RenterCity option:selected").data('city-id');
+                loadDistrictsByCity(cityId);
+            });
+
+            $('#RenterDistrict').on("change", function(){
+                let districtId = $("#RenterCity option:selected").data('district-id');
+                loadWardsByDistrict(districtId);
+            });
+
+            function loadDistrictsByCity(cityId) {
+                $('#RenterDistrict').empty().append('<option value="">-- Select District --</option>');
+                $('#RenterWard').empty().append('<option value="">-- Select Ward --</option>'); // reset wards
+
+                if (!cityId) return;
+
+                $.get(`https://open.oapi.vn/location/districts/${cityId}?size=1000`, function (districts) {
+                    let idSelectedDistrict = null;
+
+                    $.each(districts.data, (index, d) => {
+                        if (selectedDistrict && d.name === selectedDistrict) {
+                            idSelectedDistrict = d.id;
+                        }
+                        $('#RenterDistrict').append(
+                            `<option value="${d.name}" data-district-id="${d.id}" ${d.name === selectedDistrict ? "selected" : ""}>${d.name}</option>`
+                        );
+                    });
+
+                    // Nếu đã có district được chọn từ model load wards cho nó
+                    if (idSelectedDistrict) {
+                        loadWardsByDistrict(idSelectedDistrict);
+                    }
+                });
+            }
+
+            function loadWardsByDistrict(districtId) {
+                $('#RenterWard').empty().append('<option value="">-- Select Ward --</option>');
+                if (!districtId) {
+                    return;
+                }
+                $.get(`https://open.oapi.vn/location/wards/${districtId}?size=1000`, function (wards) {
+                    $.each(wards.data, (index, w) => {
+                        $('#RenterWard').append(
+                            `<option value="${w.name}" data-ward-id="${w.id}" ${w.name === selectedWard ? "selected" : ""}>${w.name}</option>`
+                        );
+                    });
+                });
+            }
+            // #endregion
+
+            // #region Same as renter functionality
+            $('.same-as-renter').change(function () {
+                var driverIndex = $(this).data('driver-index');
+                var isChecked = $(this).is(':checked');
+
+                if (isChecked) {
+                    // Uncheck other same-as-renter checkboxes
+                    $('.same-as-renter').not(this).prop('checked', false);
+                    $('.driver-details').removeClass('d-none');
+
+                    // Hide current driver details
+                    $('#driver-details-' + driverIndex).addClass('d-none');
+
+                    // Copy renter info to this driver
+                    copyRenterToDriver(driverIndex);
+                } else {
+                    $('#driver-details-' + driverIndex).removeClass('d-none');
+                }
+            });
+
+            function copyRenterToDriver(driverIndex) {
+                var renterInfo = {
+                    fullName: $('#RenterFullName').val(),
+                    email: $('#RenterEmail').val(),
+                    phoneNumber: $('#RenterPhone').val(),
+                    dateOfBirth: $('#RenterDateOfBirth').val(),
+                    licenseNumber: $('#RenterLicense').val(),
+                    address: $('#RenterAddress').val(),
+                    licenseImageUrl: $('#renter-license-url').val() || ''
+                };
+
+                // Copy basic info
+                $('input[name="Information.Drivers[' + driverIndex + '].FullName"]').val(renterInfo.fullName);
+                $('input[name="Information.Drivers[' + driverIndex + '].Email"]').val(renterInfo.email);
+                $('input[name="Information.Drivers[' + driverIndex + '].PhoneNumber"]').val(renterInfo.phoneNumber);
+                $('input[name="Information.Drivers[' + driverIndex + '].DateOfBirth"]').val(renterInfo.dateOfBirth);
+                $('input[name="Information.Drivers[' + driverIndex + '].LicenseNumber"]').val(renterInfo.licenseNumber);
+                $('input[name="Information.Drivers[' + driverIndex + '].Address"]').val(renterInfo.address);
+
+                // Copy address selections (TEXT VALUES instead of IDs)
+                var renterCityText = $('#RenterCity option:selected').text();
+                var renterDistrictText = $('#RenterDistrict option:selected').text();
+                var renterWardText = $('#RenterWard option:selected').text();
+
+                // Set driver address với text values
+                if (renterCityText && renterCityText !== '-- Select City --') {
+                    // Set city text value và trigger change
+                    $('#DriverCity_' + driverIndex).val(renterCityText).trigger('change');
+
+                    setTimeout(function() {
+                        if (renterDistrictText && renterDistrictText !== '-- Select District --') {
+                            // Set district text value và trigger change
+                            $('#DriverDistrict_' + driverIndex).val(renterDistrictText).trigger('change');
+
+                            setTimeout(function() {
+                                if (renterWardText && renterWardText !== '-- Select Ward --') {
+                                    // Set ward text value
+                                    $('#DriverWard_' + driverIndex).val(renterWardText);
+                                }
+                            }, 500);
+                        }
+                    }, 500);
+                }
+
+                // Copy license image
+                if (renterInfo.licenseImageUrl) {
+                    $('#license-url-' + driverIndex).val(renterInfo.licenseImageUrl);
+                    showLicensePreview(driverIndex, renterInfo.licenseImageUrl);
+                }
+            }
+
+            // #endregion
+
+            // #region Continued to Payment
+            function validateInformationForm() {
+                var isValid = true;
+                var firstInvalidField = null
+
+
+                // Remove previous validation classes
+                $('.form-control').removeClass('is-invalid is-valid');
+                $('.invalid-feedback').remove();
+
+                function setInvalid(input, message)
+                {
+                    $(input).addClass('is-invalid');
+                    // Adding message to invalid-input
+                    $(input).after(`<div class="invalid-feedback">${message}</div>`);
+                    if(!firstInvalidField)
+                    {
+                        firstInvalidField = input;
+                    }
+                    isValid = false;
+                }
+
+                function setValid(input)
+                {
+                    $(input).addClass('is-valid');
+                }
+
+                // Validate input
+                var pickupInput = $('#PickupDate');
+                var returnInput = $('#ReturnDate');
+
+                // Validate dates
+                var pickup = new Date($('#PickupDate').val());
+                var returnDate = new Date($('#ReturnDate').val());
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if(!pickup)
+                {
+                    setInvalid(pickupInput, "Pick-up date must have a value");
+                }
+                else if(pickup < today)
+                {
+                    setInvalid(pickupInput, "Pick-up day can't be the pass")
+                }
+                else
+                {
+                    setValid(pickupInput);
+                }
+
+                if (!returnInput.val()) {
+                    setInvalid(returnInput, 'Please select return date');
+                } else if (returnDate <= pickup) {
+                    setInvalid(returnInput, 'Return date must be after pickup date');
+                } else {
+                    setValid(returnInput);
+                }
+
+                // If have error, then focus on first error field
+                if (!isValid && firstInvalidField) {
+                    firstInvalidField.focus();
+                }
+
+                return isValid;
+            }
+
+            function submitInformationStep() {
+                var formData = new FormData(document.getElementById('information-form'));
+
+                // Show loading state on button
+                $('#continue-to-payment').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Processing...');
+
+                $.ajax({
+                    url: '@Url.Action("ContinueToPayment", "Booking")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $('#continue-to-payment').prop('disabled', false).html('Continue to Payment <i class="fas fa-arrow-right ml-2"></i>');
+                        
+                        if (response.success) {
+                            updateDataFromStepOne(response.data);
+                            showStep(2);
+                        } else {
+                            // Handle validation errors for information step
+                            if (response.errors && response.errors.length > 0) {
+                                displayErrors(response.errors);
+                                if (response.focusField) {
+                                    focusOnField(response.focusField);
+                                }
+                            } else {
+                                showValidationMessage(response.message || 'An error occurred while saving information', 'error');
+                            }
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#continue-to-payment').prop('disabled', false).html('Continue to Payment <i class="fas fa-arrow-right ml-2"></i>');
+                        
+                        var errorMessage = 'An error occurred while processing your request';
+                        if (xhr.responseJSON) {
+                            if (xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                                displayErrors(xhr.responseJSON.errors);
+                                if (xhr.responseJSON.focusField) {
+                                    focusOnField(xhr.responseJSON.focusField);
+                                }
+                                return;
+                            } else if (xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                        }
+                        showValidationMessage(errorMessage, 'error');
+                    }
+                });
+            }
+
+            function updateDataFromStepOne(data)
+            {
+                if (data.numberOfDays) {
+                    $('#step-2 .rental-period').text(data.numberOfDays + ' day(s)');
+                }
+
+                if (data.totalAmount) {
+                    $('#step-2 .total-amount').text(data.totalAmount.toLocaleString('en-US') + ' VND');
+                }
+
+                if (data.totalDeposit) {
+                    $('#step-2 .total-deposit').text(data.totalDeposit.toLocaleString('en-US') + ' VND');
+                    $('#step-2 .required-amount').text(data.totalDeposit.toLocaleString('en-US') + ' VND');
+                    $('#step-2 .cash-amount').text(data.totalDeposit.toLocaleString('en-US') + ' VND');
+                    $('#step-2 .transfer-amount').text(data.totalDeposit.toLocaleString('en-US') + ' VND');
+                }
+
+                // Update car items
+                if (data.carItems) {
+                    data.carItems.forEach(function(car, index) {
+                        var carSummary = $('#step-2 .car-summary').eq(index);
+                        carSummary.find('.car-subtotal').text(car.subTotal.toLocaleString('en-US'));
+                        carSummary.find('.price-per-day').text(car.pricePerDay.toLocaleString('en-US') + ' VND × ' + data.numberOfDays + ' days');
+                    });
+                }
+
+                // Update wallet information
+                if (data.payment && data.payment.userWallet) {
+                    $('#step-2 .current-balance').text(data.payment.userWallet.balance.toLocaleString('en-US') + ' VND');
+
+                    var walletMethods = data.payment.paymentMethods.wallet;
+                    if (walletMethods && !walletMethods.hasSufficientFunds) {
+                        var insufficientAmount = walletMethods.requiredAmount - walletMethods.currentBalance;
+                        $('#step-2 .insufficient-warning').text('You need ' + insufficientAmount.toLocaleString('en-US') + ' VND more in your wallet').show();
+                        $('#step-2 .badge-warning').show();
+                    } else {
+                        $('#step-2 .insufficient-warning').hide();
+                        $('#step-2 .badge-warning').hide();
+                    }
+                }
+
+                showValidationMessage('Pricing updated based on new dates', 'success');
+            }
+
+            $('#continue-to-payment').click(function () {
+                if(validateInformationForm())
+                {
+                    submitInformationStep();
+                }
+            });
+            
+            // #endregion
+
+            // #region Driver Address Information
+            // Initialize driver address dropdowns
+            function initializeDriverAddressDropdowns() {
+                $('.driver-city').each(function() {
+                    var driverIndex = $(this).data('driver-index');
+                    var selectedCity = $(this).data('selected-city');
+                    var selectedDistrict = $('#DriverDistrict_' + driverIndex).data('selected-district');
+                    var selectedWard = $('#DriverWard_' + driverIndex).data('selected-ward');
+
+                    loadDriverCities(driverIndex, selectedCity, selectedDistrict, selectedWard);
+                    });
+            }
+
+            function loadDriverCities(driverIndex, selectedCity, selectedDistrict, selectedWard) {
+                $.get('https://open.oapi.vn/location/provinces?size=1000', function(cities) {
+                    var citySelect = $('#DriverCity_' + driverIndex);
+                    var selectedCityId = null;
+
+                    $.each(cities.data, (index, c) => {
+                        if (selectedCity && c.name === selectedCity) {
+                            selectedCityId = c.id;
+                        }
+                        // Lưu text name thay vì ID
+                        citySelect.append(
+                            `<option value="${c.name}" ${c.name === selectedCity ? "selected" : ""}>${c.name}</option>`
+                        );
+                    });
+
+                    if (selectedCityId && selectedDistrict) {
+                        loadDriverDistrictsByName(driverIndex, selectedCity, selectedDistrict, selectedWard);
+                    }
+                });
+            }
+
+            function loadDriverDistrictsByName(driverIndex, cityName, selectedDistrict, selectedWard) {
+                $.get('https://open.oapi.vn/location/provinces?size=1000', function(cities) {
+                    var cityId = null;
+                    $.each(cities.data, (index, c) => {
+                        if (c.name === cityName) {
+                            cityId = c.id;
+                            return false; // break
+                        }
+                    });
+                    if (cityId) {
+                        loadDriverDistricts(driverIndex, cityId, selectedDistrict, selectedWard);
+                    }
+                });
+            }
+
+            function loadDriverDistricts(driverIndex, cityId, selectedDistrict, selectedWard) {
+                var districtSelect = $('#DriverDistrict_' + driverIndex);
+                var wardSelect = $('#DriverWard_' + driverIndex);
+
+                districtSelect.empty().append('<option value="">-- Select District --</option>');
+                wardSelect.empty().append('<option value="">-- Select Ward --</option>');
+
+                if (!cityId) return;
+
+                $.get(`https://open.oapi.vn/location/districts/${cityId}?size=1000`, function (districts) {
+                    var selectedDistrictId = null;
+
+                    $.each(districts.data, (index, d) => {
+                        if (selectedDistrict && d.name === selectedDistrict) {
+                            selectedDistrictId = d.id;
+                        }
+                        districtSelect.append(
+                            `<option value="${d.name}" ${d.name === selectedDistrict ? "selected" : ""}>${d.name}</option>`
+                        );
+                    });
+
+                    if (selectedDistrictId && selectedWard) {
+                        loadDriverWardsByName(driverIndex, cityId, selectedDistrict, selectedWard);
+                    }
+                });
+            }
+
+            function loadDriverWardsByName(driverIndex, cityId, districtName, selectedWard) {
+                // Tìm district ID dựa trên name
+                $.get(`https://open.oapi.vn/location/districts/${cityId}?size=1000`, function (districts) {
+                    var districtId = null;
+                    $.each(districts.data, (index, d) => {
+                        if (d.name === districtName) {
+                            districtId = d.id;
+                            return false;
+                        }
+                    });
+
+                    if (districtId) {
+                        loadDriverWards(driverIndex, districtId, selectedWard);
+                    }
+                });
+            }
+
+            function loadDriverWards(driverIndex, districtId, selectedWard) {
+                var wardSelect = $('#DriverWard_' + driverIndex);
+                wardSelect.empty().append('<option value="">-- Select Ward --</option>');
+
+                if (!districtId) return;
+
+                $.get(`https://open.oapi.vn/location/wards/${districtId}?size=1000`, function (wards) {
+                    $.each(wards.data, (index, w) => {
+                        wardSelect.append(
+                            `<option value="${w.name}" ${w.name === selectedWard ? "selected" : ""}>${w.name}</option>`
+                        );
+                    });
+                });
+            }
+
+            // Driver address change handlers
+            $(document).on('change', '.driver-city', function() {
+                var driverIndex = $(this).data('driver-index');
+                var cityName = $(this).val();
+
+                if (cityName && cityName !== '-- Select City --') {
+                    loadDriverDistrictsByName(driverIndex, cityName);
+                } else {
+                    $('#DriverDistrict_' + driverIndex).empty().append('<option value="">-- Select District --</option>');
+                    $('#DriverWard_' + driverIndex).empty().append('<option value="">-- Select Ward --</option>');
+                }
+            });
+
+            $(document).on('change', '.driver-district', function() {
+                var driverIndex = $(this).data('driver-index');
+                var districtName = $(this).val();
+                var cityName = $('#DriverCity_' + driverIndex).val();
+
+                if (districtName && districtName !== '-- Select District --' && cityName) {
+                    // Tìm lại cityId để load wards
+                    $.get('https://open.oapi.vn/location/provinces?size=1000', function(cities) {
+                        var cityId = null;
+                        $.each(cities.data, (index, c) => {
+                            if (c.name === cityName) {
+                                cityId = c.id;
+                                return false;
+                            }
+                        });
+
+                        if (cityId) {
+                            loadDriverWardsByName(driverIndex, cityId, districtName);
+                        }
+                    });
+                } else {
+                    // Clear wards
+                    $('#DriverWard_' + driverIndex).empty().append('<option value="">-- Select Ward --</option>');
+                }
+            });
+
+            // Initialize driver dropdowns after page load
+            setTimeout(initializeDriverAddressDropdowns, 1000);
+            // #endregion
+
+            // #region License Image Handling
+            
+            // Show existing license previews on page load
+            $(document).ready(function() {
+                // Show renter license preview if exists
+                var renterLicenseUrl = $('#renter-license-url').val();
+                if (renterLicenseUrl) {
+                    showRenterLicensePreview(renterLicenseUrl);
+                }
+                
+                // Show driver license previews if exist
+                $('.driver-card').each(function(index) {
+                    var licenseUrl = $('#license-url-' + index).val();
+                    if (licenseUrl) {
+                        showLicensePreview(index, licenseUrl);
+                    }
+                });
+            });
+
+            // Handle file selection for preview (no upload yet)
+            $(document).on('change', '.renter-license-upload', function() {
+                var file = this.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        showValidationMessage('File size must be less than 5MB', 'error');
+                        $(this).val('');
+                        return;
+                    }
+                    
+                    // Show preview immediately
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        showRenterLicensePreview(e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            $(document).on('change', '.license-upload', function() {
+                var file = this.files[0];
+                var driverIndex = $(this).data('driver-index');
+                
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        showValidationMessage('File size must be less than 5MB', 'error');
+                        $(this).val('');
+                        return;
+                    }
+                    
+                    // Show preview immediately
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        showLicensePreview(driverIndex, e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            function showRenterLicensePreview(imageUrl) {
+                var previewHtml = `
+                    <div class="license-preview mt-2" id="renter-license-preview">
+                        <img src="${imageUrl}" alt="License" class="img-thumbnail" style="max-width: 200px;">
+                        <button type="button" class="btn btn-sm btn-danger ml-2 remove-renter-license">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                `;
+                
+                $('#renter-license-preview').remove();
+                $('.renter-license-upload').parent().append(previewHtml);
+            }
+
+            function showLicensePreview(driverIndex, imageUrl) {
+                var previewHtml = `
+                    <div class="license-preview mt-2" id="license-preview-${driverIndex}">
+                        <img src="${imageUrl}" alt="License" class="img-thumbnail" style="max-width: 200px;">
+                        <button type="button" class="btn btn-sm btn-danger ml-2 remove-license" data-driver-index="${driverIndex}">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                `;
+                
+                $('#license-preview-' + driverIndex).remove();
+                $(`input[data-driver-index="${driverIndex}"].license-upload`).parent().append(previewHtml);
+            }
+
+            // Remove license image (clear file input and hidden URL)
+            $(document).on('click', '.remove-renter-license', function() {
+                $('#renter-license-preview').remove();
+                $('.renter-license-upload').val('');
+                $('#renter-license-url').val(''); // Clear hidden URL field
+                showValidationMessage('License image removed', 'success');
+            });
+
+            $(document).on('click', '.remove-license', function() {
+                var driverIndex = $(this).data('driver-index');
+                $('#license-preview-' + driverIndex).remove();
+                $(`input[data-driver-index="${driverIndex}"].license-upload`).val('');
+                $('#license-url-' + driverIndex).val(''); // Clear hidden URL field
+                showValidationMessage('License image removed', 'success');
+            });
+
+            // #endregion
+            
+            // #region Payment step scripts 
+            $(document).on('change', 'input[name="Payment.SelectedPaymentMethod"]', function() {
+                $('.payment-method-card').removeClass('selected');
+                $(this).closest('.payment-method-card').addClass('selected');
+                $('#payment-method-error').hide();
+            });
+            
+            // Back to information
+            $(document).on('click', '#back-to-information', function() {
+                showStep(1);
+            });
+            
+            // Complete booking
+            $(document).on('click', '#complete-booking', function() {
+                if (validatePaymentForm()) {
+                    submitPaymentStep();
+                }
+            });
+            
+            function validatePaymentForm() {
+                var isValid = true;
+                // Remove previous validation classes
+                $('.form-control, .form-check-input').removeClass('is-invalid is-valid');
+                
+                // Validate payment method selection
+                if (!$('input[name="Payment.SelectedPaymentMethod"]:checked').length) {
+                    $('#payment-method-error').show();
+                    isValid = false;
+                }
+                
+                // Check wallet balance if wallet is selected
+                var selectedPaymentMethod = $('input[name="Payment.SelectedPaymentMethod"]:checked').val();
+                if (selectedPaymentMethod === '1') { // Wallet
+                    var walletCard = $('input[name="Payment.SelectedPaymentMethod"]:checked').closest('.payment-method-card');
+                    var insufficientBadge = walletCard.find('.badge-warning');
+                    if (insufficientBadge.length && insufficientBadge.text().includes('Insufficient')) {
+                        showValidationMessage('Insufficient wallet balance. Please choose a different payment method or top up your wallet.', 'error');
+                        isValid = false;
+                    }
+                }
+                
+                if (!isValid) {
+                    showValidationMessage('Please complete all required fields and accept the terms', 'error');
+                }
+                
+                return isValid;
+            }
+            
+            function submitPaymentStep() {
+                var formData = new FormData(document.getElementById('payment-form'));
+                
+                // Show loading state
+                $('#complete-booking').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Processing...');
+                
+                $.ajax({
+                    url: '@Url.Action("ProcessPayment", "Booking")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        // Reset button state
+                        $('#complete-booking').prop('disabled', false).html('Complete Booking <i class="fas fa-check ml-2"></i>');
+                        
+                        if (response.success) {
+                            // Update confirmation data and move to step 3
+                            updateConfirmationData(response.data);
+                            showStep(3);
+                        } else {
+                            // Handle validation errors
+                            handleValidationErrors(response);
+                        }
+                    },
+                    error: function(xhr) {
+                        // Reset button state
+                        $('#complete-booking').prop('disabled', false).html('Complete Booking <i class="fas fa-check ml-2"></i>');
+                        
+                        var errorMessage = 'An error occurred while processing payment';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        showValidationMessage(errorMessage, 'error');
+                    }
+                });
+            }
+
+            function handleValidationErrors(response) {       
+                // Clear previous validation states
+                $('.form-control').removeClass('is-invalid is-valid');
+                $('.invalid-feedback').remove();
+                
+                // If there are step 1 errors, redirect to step 1
+                if (response.redirectToStep && response.redirectToStep === 1) {
+                    // Show step 1
+                    showStep(1);
+                    
+                    // Wait a bit for step to load, then show errors
+                    setTimeout(function() {
+                        displayErrors(response.step1Errors || response.errors || []);
+                        
+                        // Focus on the first error field
+                        if (response.focusField) {
+                            focusOnField(response.focusField);
+                        }
+                    }, 100);
+                }
+                // If there are step 2 errors, stay on step 2
+                else if (response.step2Errors && response.step2Errors.length > 0) {
+                    displayErrors(response.step2Errors);
+                    
+                    // Focus on the first error field in step 2
+                    if (response.focusField) {
+                        focusOnField(response.focusField);
+                    }
+                }
+                // Show general error message
+                else {
+                    var errorList = '';
+                    if (response.errors && response.errors.length > 0) {
+                        errorList = '<ul class="mb-0">';
+                        response.errors.forEach(function(error) {
+                            errorList += '<li>' + error.message + '</li>';
+                        });
+                        errorList += '</ul>';
+                    }
+                    
+                    var fullMessage = response.message || 'Please correct the following errors before proceeding';
+                    if (errorList) {
+                        fullMessage += errorList;
+                    }
+                    
+                    showValidationMessage(fullMessage, 'error');
+                }
+            }
+
+            function displayErrors(errors) {
+                if (!errors || errors.length === 0) return;
+                
+                var errorSummary = '<div class="error-message">';
+                errorSummary += '<strong>Please correct the following errors:</strong><ul class="mb-0 mt-2">';
+                
+                errors.forEach(function(error) {
+                    // Add error to summary
+                    errorSummary += '<li>' + error.message + '</li>';
+                    
+                    // Find and mark the field as invalid
+                    var fieldElement = findFieldElement(error.field);
+                    if (fieldElement && fieldElement.length > 0) {
+                        fieldElement.addClass('is-invalid');
+                        
+                        // Add individual error message
+                        var errorMsg = '<div class="invalid-feedback">' + error.message + '</div>';
+                        fieldElement.after(errorMsg);
+                    }
+                });
+                
+                errorSummary += '</ul></div>';
+                
+                // Show error summary at the top of current step
+                $('.booking-step:not(.d-none)').prepend(errorSummary);
+                
+                // Auto remove after 10 seconds
+                setTimeout(function() {
+                    $('.error-message').fadeOut();
+                }, 10000);
+            }
+
+            function findFieldElement(fieldName) {
+                // Try different selectors to find the field
+                var selectors = [
+                    `[name="${fieldName}"]`,                               
+                    `[name="Information.${fieldName}"]`,               
+                    `[name="Payment.${fieldName}"]`,               
+                    `#${fieldName}`,                     
+                    `input[name*="${fieldName}"]`,                       
+                    `select[name*="${fieldName}"]`,                       
+                    `textarea[name*="${fieldName}"]`
+                ];
+                
+                for (var i = 0; i < selectors.length; i++) {
+                    var element = $(selectors[i]);
+                    if (element.length > 0) {
+                        return element.first();
+                    }
+                }
+                
+                // If direct field not found, try to find by pattern
+                // Handle driver fields like "Drivers[0].FullName"
+                if (fieldName.includes('Drivers[') && fieldName.includes('].')) {
+                    var driverFieldSelector = `input[name="Information.${fieldName}"], select[name="Information.${fieldName}"], textarea[name="Information.${fieldName}"]`;
+                    var driverElement = $(driverFieldSelector);
+                    if (driverElement.length > 0) {
+                        return driverElement.first();
+                    }
+                }
+                
+                console.warn('Field not found:', fieldName);
+                return null;
+            }
+
+            function focusOnField(fieldName) {
+                var fieldElement = findFieldElement(fieldName);
+                if (fieldElement && fieldElement.length > 0) {
+                    // If the field is in a hidden driver detail, show it first
+                    var driverDetails = fieldElement.closest('.driver-details');
+                    if (driverDetails.length > 0 && driverDetails.hasClass('d-none')) {
+                        // Uncheck "same as renter" to show driver details
+                        var driverIndex = driverDetails.attr('id').replace('driver-details-', '');
+                        $('#SameAsRenter_' + driverIndex).prop('checked', false);
+                        driverDetails.removeClass('d-none');
+                    }
+                    
+                    // Focus on the field
+                    fieldElement.focus();
+                    
+                    // Scroll to the field
+                    $('html, body').animate({
+                        scrollTop: fieldElement.offset().top - 100
+                    }, 500);
+                } else {
+                    console.warn('Cannot focus on field:', fieldName);
+                }
+            }
+
+            function updateConfirmationData(data) {
+                if (!data) {
+                    console.warn('No confirmation data received');
+                    return;
+                }
+
+                // Update booking number
+                if (data.bookingNumber) {
+                    $('#step-3 .confirmation-details').find('.text-primary').text(data.bookingNumber);
+                    $('#step-3').find('[data-booking-number]').text(data.bookingNumber);
+                }
+
+                // Update booking date
+                if (data.bookingDate) {
+                    var bookingDate = new Date(data.bookingDate);
+                    var formattedDate = bookingDate.toLocaleDateString('en-GB') + ' ' + bookingDate.toLocaleTimeString('en-GB', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    $('#step-3').find('[data-booking-date]').text(formattedDate);
+                }
+
+                // Update booking status
+                if (data.bookingStatus) {
+                    $('#step-3').find('[data-booking-status]').text(data.bookingStatus).removeClass().addClass('badge badge-success p-2');
+                }
+
+                // Update payment method
+                if (data.paymentMethod) {
+                    $('#step-3').find('[data-payment-method]').text(data.paymentMethod);
+                }
+
+                // Update payment status
+                if (data.paymentStatus) {
+                    var badgeClass = data.paymentStatus === 'Paid' ? 'badge-success' : 'badge-warning';
+                    $('#step-3').find('[data-payment-status]').text(data.paymentStatus).removeClass().addClass('badge ' + badgeClass + ' p-2');
+                }
+
+                // Update next steps
+                if (data.nextSteps && data.nextSteps.length > 0) {
+                    var nextStepsHtml = '';
+                    data.nextSteps.forEach(function(step) {
+                        nextStepsHtml += `
+                            <div class="step-item d-flex align-items-start mb-3">
+                                <div class="step-icon mr-3">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                </div>
+                                <div class="step-content">
+                                    <p class="mb-0">${step}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $('#step-3 .next-steps').html(nextStepsHtml);
+                    $('#step-3 .next-steps').closest('.form-card').show();
+                } else {
+                    $('#step-3 .next-steps').closest('.form-card').hide();
+                }
+
+                // Update action button href
+                if (data.bookingNumber) {
+                    var detailsUrl = '@Url.Action("Details", "Booking")' + '?bookingNumber=' + encodeURIComponent(data.bookingNumber);
+                    $('#step-3').find('[data-booking-details-url]').attr('href', detailsUrl);
+                }
+
+                // Show success message
+                showValidationMessage('Booking completed successfully! Your booking number is: ' + (data.bookingNumber || 'N/A'), 'success');
+                
+                // Add confetti effect (optional)
+                if (typeof confetti !== 'undefined') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+
+                // Auto-scroll to top to show confirmation
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 800);
+
+                console.log('Confirmation data updated successfully:', data);
+            }
+
+            function showValidationMessage(message, type) {
+                // Ensure any existing message is removed first
+                $('.booking-notification').remove();
+                
+                var alertClass = type === 'error' ? 'alert-danger' : (type === 'success' ? 'alert-success' : 'alert-info');
+                var iconClass = type === 'error' ? 'fas fa-exclamation-triangle' : (type === 'success' ? 'fas fa-check-circle' : 'fas fa-info-circle');
+                
+                var notificationHtml = `
+                    <div class="booking-notification">
+                        <div class="alert ${alertClass} alert-dismissible">
+                            <i class="${iconClass} mr-2"></i>${message}
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                $('body').append(notificationHtml);
+                
+                // Auto remove after 8 seconds
+                setTimeout(function() {
+                    $('.booking-notification').fadeOut();
+                }, 8000);
+            }
+        });
+    </script>
+}

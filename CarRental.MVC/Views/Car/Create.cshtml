@@ -1,0 +1,288 @@
+﻿@{
+    ViewData["Title"] = "Create Car";
+    var activeTab = ViewBag.ActiveTab ?? "step1";
+}
+
+<div class="container py-4">
+    <form id="addCarForm"
+          asp-controller="Car"
+          asp-action="Create"
+          method="post"
+          enctype="multipart/form-data">
+
+        <!-- Step Navigation with Arrow Tabs -->
+        <ul class="step-tabs mb-4" id="stepTabs">
+            <li class="step-tab @(activeTab == "step1" ? "active" : "")" onclick="showAddCarStep(1)">Step 1: Basic</li>
+            <li class="step-tab @(activeTab == "step2" ? "active" : "")" onclick="showAddCarStep(2)">Step 2: Details</li>
+            <li class="step-tab @(activeTab == "step3" ? "active" : "")" onclick="showAddCarStep(3)">Step 3: Pricing</li>
+            <li class="step-tab @(activeTab == "step4" ? "active" : "")" onclick="showAddCarStep(4)">Step 4: Finish</li>
+        </ul>
+
+        <!-- Step Content -->
+        <div class="tab-content pt-4">
+            <div class="tab-pane fade @(activeTab == "step1" ? "show active" : "")" id="step1">
+                @Html.Partial("_Step1Basic")
+            </div>
+            <div class="tab-pane fade @(activeTab == "step2" ? "show active" : "")" id="step2">
+                @Html.Partial("_Step2Details")
+            </div>
+            <div class="tab-pane fade @(activeTab == "step3" ? "show active" : "")" id="step3">
+                @Html.Partial("_Step3Pricing")
+            </div>
+            <div class="tab-pane fade" id="step4">
+                
+            </div>
+        </div>
+    </form>
+    <div id="formError" class="alert alert-danger d-none"></div>
+</div>
+<!-- Add Form End -->
+<!-- Arrow Tab CSS -->
+<style>
+    .step-tabs {
+        display: flex;
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+        overflow-x: auto;
+    }
+
+    .step-tab {
+        position: relative;
+        padding: 12px 30px 12px 20px;
+        background-color: #6c757d;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 8px;
+        transition: background-color 0.3s ease;
+        clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0% 100%);
+        white-space: nowrap;
+        user-select: none;
+    }
+
+        .step-tab.active {
+            background-color: #0056b3;
+        }
+
+        .step-tab:not(.active):not(.disabled):hover {
+            background-color: #004080;
+        }
+
+        .step-tab.disabled {
+            background-color: #ccc;
+            color: #888;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    .tab-pane {
+        display: none;
+    }
+
+        .tab-pane.show.active {
+            display: block;
+        }
+</style>
+
+<!-- Step Tab Script -->
+<script>
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    function showAddCarStep(step) {
+        if (step > currentStep) return; 
+
+        // Activate tab
+        document.querySelectorAll('.step-tab').forEach((el, index) => {
+            el.classList.remove('active');
+            if (index + 1 === step) el.classList.add('active');
+        });
+
+        // Show tab content
+        document.querySelectorAll('.tab-pane').forEach(el => {
+            el.classList.remove('show', 'active');
+        });
+        document.getElementById(`step${step}`).classList.add('show', 'active');
+
+        currentStep = step;
+        updateTabStatus();
+    }
+
+    function nextStep() {
+        if (currentStep < totalSteps) {
+            currentStep++;
+            showAddCarStep(currentStep);
+        }
+    }
+
+    function updateTabStatus() {
+        const tabs = document.querySelectorAll('.step-tab');
+        tabs.forEach((tab, index) => {
+            if (index + 1 > currentStep) {
+                tab.classList.add('disabled');
+            } else {
+                tab.classList.remove('disabled');
+            }
+        });
+    }
+
+    // Ban đầu chỉ cho phép click step 1
+    document.addEventListener("DOMContentLoaded", function () {
+        updateTabStatus();
+    });
+
+    function clearFieldErrors() {
+      document.querySelectorAll('[data-error-for]').forEach(el => el.textContent = '');
+      const box = document.getElementById('formError');
+      if (box) { box.classList.add('d-none'); box.textContent = ''; }
+    }
+
+    function renderFieldErrors(fieldErrors) {
+      if (!fieldErrors) return;
+      Object.keys(fieldErrors).forEach(name => {
+        const el = document.querySelector(`[data-error-for="${name}"]`);
+        if (el) el.textContent = fieldErrors[name] || '';
+      });
+      const firstErr = Array.from(document.querySelectorAll('[data-error-for]'))
+        .find(el => el.textContent?.trim().length > 0);
+      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function fetchJsonSafe(url, options) {
+      const res = await fetch(url, options);
+      const text = await res.text();
+      try {
+        return { ok: res.ok, json: JSON.parse(text) };
+      } catch {
+        return { ok: res.ok, json: null, raw: text };
+      }
+    }
+
+    // Preview ảnh/giấy tờ
+    function renderPreview(doc, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        if (doc.previewUrl.match(/\.(jpg|jpeg|png)$/i)) {
+            container.innerHTML = `<img src="${doc.previewUrl}" style="max-width:200px;"/>`;
+        } else {
+            container.innerHTML = `<p>${doc.fileName}</p>`;
+        }
+    }
+
+    function showFormError(msg) {
+      const box = document.getElementById('formError');
+      if (box) { box.textContent = msg || 'Server error'; box.classList.remove('d-none'); }
+    }
+
+    async function uploadAllFiles(carData) {
+        const formData = new FormData();
+        const typeList = Object.keys(window.carFiles);
+
+        // Append file theo thứ tự
+        typeList.forEach(type => formData.append("files", window.carFiles[type]));
+
+        const response = await fetch('/Car/Upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const uploadedFiles = await response.json();
+
+        // Gán FilePath theo thứ tự trong CarDocuments
+        const carDocs = carData.CarDocuments || [];
+        for (let i = 0; i < Math.min(typeList.length, uploadedFiles.length); i++) {
+            carDocs[i].FilePath = uploadedFiles[i];
+        }
+
+        return carData;
+    }
+
+        async function handleSubmit() {
+        const createCarData = getData();
+
+        // Kiểm tra lỗi từng bước
+        if (createCarData.firstErrorStep) {
+            showAddCarStep(createCarData.firstErrorStep);
+            const errors = createCarData[`errorsStep${createCarData.firstErrorStep}`] || {};
+            Object.keys(errors).forEach(field => {
+                const el = document.querySelector(`[data-error-for="${field}"]`);
+                if (el) el.textContent = errors[field];
+            });
+            return;
+        }
+
+        // Upload file + update URLs
+        const normalizedDataWithFiles = await uploadAllFiles(createCarData);
+
+        // Chuẩn hóa dữ liệu trước khi submit
+        const normalizedData = normalizeCarData(normalizedDataWithFiles);
+
+        // Submit dữ liệu
+        fetch('/Car/Create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(normalizedData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirectUrl;
+                toastr.success("Add Car successfully!");
+            } else {
+                console.error("Lỗi khi tạo xe:", data);
+                toastr.error("Add Car failed");
+            }
+        })
+        .catch(err => {
+            console.error("Fetch error:", err);
+            toastr.error("Cannot connect to server");
+        });
+    }
+
+    function normalizeCarData(jsonData) {
+        const model = {};
+
+        // Step 1
+        const s1 = jsonData.step1 || {};
+        model.LicensePlate = s1.LicensePlate || '';
+        model.Color = s1.Color || null;
+        model.Brand = s1.Brand || null;
+        model.Model = s1.Model || null;
+        model.ProductionYear = s1.ProductionYear ? parseInt(s1.ProductionYear) : null;
+        model.Seats = s1.Seats ? parseInt(s1.Seats) : null;
+        model.Transmission = s1.Transmission || null;
+        model.FuelType = s1.FuelType || null;
+
+        // Step 2
+        const s2 = jsonData.step2 || {};
+        model.Mileage = s2.Mileage || null;
+        model.FuelConsumption = s2.FuelConsumption || null;
+        model.Address = s2.Address || null;
+        model.Province = s2.Province || null;
+        model.District = s2.District || null;
+        model.Ward = s2.Ward || null;
+        model.Description = s2.Description || null;
+
+        // CarSpecifications merge Step2 + Step3
+        model.CarSpecifications = [];
+        if (Array.isArray(s2.CarSpecifications)) model.CarSpecifications.push(...s2.CarSpecifications);
+        if (jsonData.step3?.CarSpecifications) model.CarSpecifications.push(...jsonData.step3.CarSpecifications);
+
+        // CarDocuments: dùng CarDocuments top-level 
+        model.CarDocuments = [];
+        if (Array.isArray(jsonData.CarDocuments)) model.CarDocuments.push(...jsonData.CarDocuments);
+
+        // Step3 pricing
+        const s3 = jsonData.step3 || {};
+        model.BasePricePerDay = s3.BasePricePerDay || null;
+        model.RequiredDeposit = s3.RequiredDeposit || null;
+
+        return model;
+    }
+</script>
+
+<!-- Step 4 Template (ẩn, dùng JS inject) -->
+<script type="text/template" id="step4-template">
+    @Html.Partial("_Step4Finish")
+</script>

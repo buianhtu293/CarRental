@@ -1,0 +1,51 @@
+﻿@model CarRental.Application.DTOs.Car.CarDetailsDto
+
+<div class="row">
+    <div class="col-md-6">
+        <div><strong>License plate:</strong> @Model.Basic.LicensePlate</div>
+        <div><strong>Brand name:</strong> @Model.Basic.Brand</div>
+        <div><strong>Production year:</strong> @Model.Basic.ProductionYear</div>
+        <div><strong>Transmission:</strong> @Model.Basic.Transmission</div>
+    </div>
+    <div class="col-md-6">
+        <div><strong>Color:</strong> @Model.Basic.Color</div>
+        <div><strong>Model:</strong> @Model.Basic.Model</div>
+        <div><strong>No. of seats:</strong> @Model.Basic.Seats</div>
+        <div><strong>Fuel:</strong> @Model.Basic.FuelType</div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <h6>Documents:</h6>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th style="width:60px">No</th>
+                <th>Name</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody>
+        @{
+            var i = 1;
+            foreach (var doc in Model.Basic.Documents)
+            {
+                var note = string.IsNullOrWhiteSpace(doc.FilePath) ? "Not available" : "Verified";
+                <tr>
+                    <td>@i</td>
+                    <td>@doc.DocumentType</td>
+                    <td>
+                        @note
+                        @if (!string.IsNullOrWhiteSpace(doc.FilePath))
+                        {
+                            <a class="ms-2" href="@Url.Content(doc.FilePath)" target="_blank">View</a>
+                        }
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        </tbody>
+    </table>
+    <small class="text-muted">Note: Documents will be available for viewing after you've paid the deposit to rent.</small>
+</div>

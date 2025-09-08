@@ -1,0 +1,65 @@
+﻿@model CarRental.MVC.Models.Wallet.WalletWithdrawViewModel
+@{
+    Layout = null;
+}
+
+@Html.AntiForgeryToken()
+
+<div class="modal-header">
+    <h5 class="modal-title">Withdraw</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="formWithdraw" asp-action="Withdraw" asp-controller="Wallet" method="post">
+    @Html.AntiForgeryToken()
+    <div class="modal-body">
+        <p>Your current balance is <strong class="text-success">@Model.CurrentBalance.ToString("#,0")</strong>. Please
+            select the amount to withdraw from your wallet</p>
+
+        <div class="mb-3">
+            <label class="form-label">Withdraw amount</label>
+            <select class="form-select" id="withdrawAmount" name="Amount" required>
+                <option value="2000000">2,000,000</option>
+                <option value="5000000">5,000,000</option>
+                <option value="10000000">10,000,000</option>
+                <option value="@decimal.MaxValue">All balance</option>
+            </select>
+            <div class="form-text">“All balance” withdraws the full available balance.</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Note (optional)</label>
+            <input class="form-control" name="Note" placeholder="Withdraw note"/>
+        </div>
+
+        <input type="hidden" name="CurrentBalance" value="@Model.CurrentBalance"/>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">OK</button>
+    </div>
+</form>
+
+<script>
+    $("#formWithdraw").off("submit").on("submit", function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: "@Url.Action("Withdraw", "Wallet")",
+            method: "POST",
+            data: $(this).serialize(),
+            success: function (res) {
+                if (res?.ok) {
+                    toastr.success(res.message);
+                    $("#walletModal").modal("hide");
+                    location.reload();
+                } else {
+                    toastr.error(res?.message ?? "Withdraw failed");
+                }
+            },
+            error: function (xhr) {
+                toastr.error(xhr.responseText || "Withdraw failed");
+            }
+        });
+    });
+</script>

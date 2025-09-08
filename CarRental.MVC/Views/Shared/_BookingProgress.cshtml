@@ -1,0 +1,172 @@
+﻿@using CarRental.MVC.Models.Booking
+@{
+    //TODO : Convert into component 
+}
+@model BookingProgressViewModel
+
+<div class="booking-progress-container mb-4">
+    <div class="progress-wrapper">
+        <div class="progress-steps">
+            <!-- Step 1: Booking Information -->
+            <div class="progress-step @(Model.IsStep1Active ? "active" : "") @(Model.IsStep1Completed ? "completed" : "")" data-step="1">
+                <div class="step-circle">
+                    @if (Model.IsStep1Completed)
+                    {
+                        <i class="fas fa-check"></i>
+                    }
+                    else
+                    {
+                        <span>1</span>
+                    }
+                </div>
+                <div class="step-label">Booking Information</div>
+            </div>
+
+            <!-- Progress Line 1-2 -->
+            <div class="progress-line @(Model.IsStep1Completed ? "completed" : "")"></div>
+
+            <!-- Step 2: Payment -->
+            <div class="progress-step @(Model.IsStep2Active ? "active" : "") @(Model.IsStep2Completed ? "completed" : "")" data-step="2">
+                <div class="step-circle">
+                    @if (Model.IsStep2Completed)
+                    {
+                        <i class="fas fa-check"></i>
+                    }
+                    else
+                    {
+                        <span>2</span>
+                    }
+                </div>
+                <div class="step-label">Payment & Verification</div>
+            </div>
+
+            <!-- Progress Line 2-3 -->
+            <div class="progress-line @(Model.IsStep2Completed ? "completed" : "")"></div>
+
+            <!-- Step 3: Confirmation -->
+            <div class="progress-step @(Model.IsStep3Active ? "active" : "") @(Model.IsStep3Completed ? "completed" : "")" data-step="3">
+                <div class="step-circle">
+                    @if (Model.IsStep3Completed)
+                    {
+                        <i class="fas fa-check"></i>
+                    }
+                    else
+                    {
+                        <span>3</span>
+                    }
+                </div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.booking-progress-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.progress-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    background: #fff;
+    padding: 0 10px;
+    flex: 1;
+    text-align: center;
+}
+
+.step-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    border: 3px solid #e0e0e0;
+    background: #fff;
+    color: #999;
+}
+
+.step-label {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    color: #666;
+    transition: all 0.3s ease;
+    max-width: 100px;
+    line-height: 1.2;
+}
+
+.progress-line {
+    flex: 1;
+    height: 3px;
+    background: #e0e0e0;
+    margin: 0 -10px;
+    position: relative;
+    top: -35px;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.progress-line.completed {
+    background: linear-gradient(to right, #28a745, #20c997);
+}
+
+.progress-step.active .step-circle {
+    border-color: #007bff;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.progress-step.active .step-label {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.progress-step.completed .step-circle {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: #fff;
+}
+
+.progress-step.completed .step-label {
+    color: #28a745;
+    font-weight: 600;
+}
+
+/* Special styling for step 3 when active (success state) */
+.progress-step[data-step="3"].active .step-circle {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    animation: pulse 2s infinite;
+}
+
+.progress-step[data-step="3"].active .step-label {
+    color: #28a745;
+    font-weight: 600;
+}
+</style>

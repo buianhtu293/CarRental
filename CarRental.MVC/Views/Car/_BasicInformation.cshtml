@@ -1,0 +1,160 @@
+﻿@using CarRental.Application.DTOs
+@model EditCarDto;
+
+<div class="container-fluid" id="step1">
+    <div class="container">
+        <div class="row">
+            <!-- License plate -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">License plate:</label>
+                <span class="fw-bold text-dark">@Model.LicensePlate</span>
+            </div>
+
+            <!-- Color -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Color:</label>
+                <span class="fw-bold text-dark">@Model.Color</span>
+            </div>
+
+            <!-- Brand -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Brand name:</label>
+                <span class="fw-bold text-dark">@Model.Brand</span>
+            </div>
+
+            <!-- Model -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Model:</label>
+                <span class="fw-bold text-dark">@Model.Model</span>
+            </div>
+
+            <!-- Production year -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Production year:</label>
+                <span class="fw-bold text-dark">@Model.Year</span>
+            </div>
+
+            <!-- Seats -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">No. of seats:</label>
+                <span class="fw-bold text-dark">@Model.Seats</span>
+            </div>
+
+            <!-- Transmission -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Transmission:</label>
+                <span class="fw-bold text-dark">@Model.Transmission</span>
+            </div>
+
+            <!-- Fuel -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Fuel:</label>
+                <span class="fw-bold text-dark">@Model.FuelType</span>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <h5 class="mt-4">Documents</h5>
+        <div class="row mb-3">
+            <table class="table table-striped table-bordered align-middle shadow-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">No</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Note</th>
+                        <th scope="col">Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Registration paper</td>
+                        @{
+                            var regLink = Model.CarDocuments.FirstOrDefault(x => x.DocumentType == "RegistrationPaper");
+                        }
+                        <td>
+                            @if (regLink != null)
+                            {
+                                <span class="text-success">Verified</span>
+                            }
+                            else 
+                            {
+                                <span class="text-danger">Not available</span>
+                            }
+                        </td>
+                        <td>
+                            @if (regLink != null)
+                            {
+                                <a href="@regLink.FilePath" download>
+                                    @regLink.FilePath
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Not available</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Certificate of inspection</td>
+                        @{
+                            var cerLink = Model.CarDocuments.FirstOrDefault(x => x.DocumentType == "CertificateOfInspection");
+                        }
+                        <td>
+                            @if (cerLink != null)
+                            {
+                                <span class="text-success">Verified</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Not available</span>
+                            }
+                        </td>
+                        <td>
+                            @if (cerLink != null)
+                            {
+                                <a href="@cerLink.FilePath" download>
+                                    @cerLink.FilePath
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Not available</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Insurance</td>
+                        @{
+                            var insLink = Model.CarDocuments.FirstOrDefault(x => x.DocumentType == "Insurance");
+                        }
+                        <td>
+                            @if (insLink != null)
+                            {
+                                <span class="text-success">Verified</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Not available</span>
+                            }
+                        </td>
+                        <td>
+                            @if (insLink != null)
+                            {
+                                <a href="@insLink.FilePath" download>
+                                    @insLink.FilePath
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-danger">Not available</span>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
